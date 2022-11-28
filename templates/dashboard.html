@@ -1,0 +1,50 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+    <link rel="shortcut icon" href="https://s3.amazonaws.com/django-blog/ico/favicon_v2.ico">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.js"></script>
+    <script src="https://cdn.anychart.com/releases/v8/js/anychart-core.min.js"></script>
+    <script src="https://cdn.anychart.com/releases/v8/js/anychart-pie.min.js"></script>
+
+    <link rel="stylesheet" href="../static/stylesheet.css">
+    
+    <title>Dashboard for robot: {{nID}}</title>
+</head>
+<body>
+    <div class="header"></div>
+    <div class="topnav">
+        <a href="/dashboard?nID={{nID}}">Dashboard</a>
+        <a href="/historic?nID={{nID}}">Historic</a>
+        <a href="/alarms?nID={{nID}}">Alarms</a>
+    </div>
+    <div class="row">
+        <div class="leftcolumn">
+            <div class="card">
+                <h2>Robot: {{nID}}</h2>
+                    <div class={{class_state}}>
+                        <h2>Color-based state</h2>
+                    </div>
+            </div>
+        </div>
+        <div class="rightcolumn">
+            <div class="card">
+                <h2>Current State</h2>
+                <div id="currentState" style="height:100px;">{{state}}</div>
+            </div>
+
+            <div class="card">
+                <h3>Last time connected</h3>
+                <div id="lastTimeConnected" style="height:100px;">{{lstTmCon}}</div>
+            </div>
+
+        </div>
+    </div>
+    <script>
+
+
+
+
+    </script>
+</body>
+</html>
