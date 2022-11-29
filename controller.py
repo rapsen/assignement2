@@ -4,7 +4,7 @@ class Controller():
     def __init__(self) -> None:
         
         self.robots = self.getAllRobot()
-        
+                
     def getAllRobot(self) -> list:
         
         robots = []
@@ -14,7 +14,5 @@ class Controller():
             
         return robots
         
-    
+# Create istance of the controller
 controller = Controller()
-print(controller.robots)
-

@@ -1,6 +1,6 @@
 import sqlite3
+
 from config import *
-DATABASE = "database.db"
 
 
 def dict_factory(cursor, row):
@@ -12,6 +12,7 @@ def dict_factory(cursor, row):
 
 class Model():
     """ Class to handle database """
+
     def __init__(self):
         self.database = DATABASE
         self.table = "Event"
@@ -41,14 +42,14 @@ class Model():
 
     def execute(self) -> list:
         self.c.execute(self.request)
-        
+
         return self.c.fetchall()
 
     def __SELECT(self, element="*", condition=True) -> list:
         """ Private method to request element according to the condition """
 
         self.request = f"SELECT {element} FROM {self.table} WHERE {condition}"
-        #print(self.request)
+        # print(self.request)
 
         return self.execute()
 
@@ -66,13 +67,11 @@ class Model():
 
     def getEventById(self, id: int):
         return self.__SELECT(condition=f"id == {id}")
-    
+
     def getAllDeviceId(self):
         return self.__SELECT(element="DISTINCT deviceId")
 
-        
-
-
+# Create istance of the model
 model = Model()
 
 # Test get methods

@@ -1,4 +1,6 @@
+BROKER_HOSTNAME = "broker.mqttdashboard.com"
 
+DATABASE = "data/database.db"
 
 # Possible States
 STARVED = "READY-IDLE-STARVED"
