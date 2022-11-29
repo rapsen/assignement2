@@ -7,7 +7,7 @@
     <script src="https://cdn.anychart.com/releases/v8/js/anychart-core.min.js"></script>
     <script src="https://cdn.anychart.com/releases/v8/js/anychart-pie.min.js"></script>
 
-    <link rel="stylesheet" href="../static/stylesheet.css">
+    <link rel="stylesheet" href="../static/css/stylesheet.css">
     
     <title>Dashboard for robot: {{nID}}</title>
 </head>
@@ -35,16 +35,11 @@
 
             <div class="card">
                 <h3>Last time connected</h3>
-                <div id="lastTimeConnected" style="height:100px;">{{lstTmCon}}</div>
+                <div id="lastTimeConnected" style="height:100px;" onClick=functionmyfunction()>{{lstTmCon}}</div>
             </div>
 
         </div>
     </div>
-    <script>
-
-
-
-
-    </script>
+    <script src="dashboard.js"></script>
 </body>
 </html>
