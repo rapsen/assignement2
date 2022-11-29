@@ -4,6 +4,7 @@ class Controller():
     def __init__(self) -> None:
         
         self.robots = self.getAllRobot()
+        self.id = self.robots[0]
                 
     def getAllRobot(self) -> list:
         
