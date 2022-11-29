@@ -1,6 +1,4 @@
 import sqlite3
-from ASS_2_viewer import conn
-import threading
 
 def dict_factory(cursor, row):
     d = {}
@@ -8,35 +6,9 @@ def dict_factory(cursor, row):
         d[col[0]] = row[idx]
     return d
 
+conn = sqlite3.connect('robotDB4.db', check_same_thread=False)
 conn.row_factory = dict_factory
 c = conn.cursor()
-
-# Define the lock globally
-#lock = threading.Lock()
-
-#def Func(cursor,db):
-    #try:
-        #lock.acquire(True)
-        #res = c.execute("""CREATE TABLE IF NOT EXISTS robot (
-                        #id INTEGER PRIMARY KEY AUTOINCREMENT,
-                        #deviceId text,
-                        #state text,
-                        #time text,
-                        #sequenceNumber integer
-                        #);""")
-    #finally:
-        #lock.release()
-
-#for each host i want generate a thread
-#thr = threading.Thread(target = Func, args=(c,conn))
-#thr.start()
-
-
-##conn = sqlite3.connect(':memory:') # save to memory
-##conn = sqlite3.connect('robotDB4.db')
-#conn.row_factory = dict_factory
-
-#c = conn.cursor()
 
 c.execute("""CREATE TABLE IF NOT EXISTS robot (
                         id INTEGER PRIMARY KEY AUTOINCREMENT,

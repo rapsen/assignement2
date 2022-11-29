@@ -1,60 +1,38 @@
-from flask import Flask, render_template, request, jsonify
-import paho.mqtt.subscribe as subscribe
-from flask_mqtt import Mqtt
-import sqlite3
-import ASS_2_SQLdb
-from ASS_2_robot import Robot, time_change
+from flask import Flask, render_template, request
+import paho.mqtt.client as mqtt
+import paho.mqtt.publish as publish
+import threading
 import json
 
-# test git
-# Does not work
+from ASS_2_SQLdb import handle_mess
+from ASS_2_robot import Robot, time_change
 
 server = Flask(__name__)
-database = ASS_2_SQLdb
+threadStarted = False
 
-# Database
-conn = sqlite3.connect('robotDB4.db', check_same_thread=False) # , check_same_thread=False
+@server.route('/thread/start', methods=['GET'])
+def startThreads():
+    print("Start threads attempt")
+    global threadStarted
+    if (threadStarted):
+        return "Threads have started already"
 
-# MQTT
-server.config['MQTT_BROKER_URL'] = 'broker.mqttdashboard.com'
-server.config['MQTT_BROKER_PORT'] = 1883
-server.config['MQTT_USERNAME'] = ''  # Set this item when you need to verify username and password
-server.config['MQTT_PASSWORD'] = ''  # Set this item when you need to verify username and password
-server.config['MQTT_KEEPALIVE'] = 5  # Set KeepAlive time in seconds
-server.config['MQTT_TLS_ENABLED'] = False  # If your server supports TLS, set it True
-topic = 'ii22/telemetry/#' #"ii22/telemetry/#"
+    else:
+        threadStarted=True
+        #Mqtt
+        x = threading.Thread(target=startSubscription)
+        x.start()
+        return "Starting threads"
 
-mqtt_client = Mqtt(server)
+@server.route("/event", methods=['POST'])
+def robotMessage() -> str:
+    event = request.json
+    robID = event["deviceId"]
+    event = json.dumps(event)
+    publish.single(f"ii22/telemetry/{robID}", event, hostname="broker.mqttdashboard.com")
+    return "Hello"
 
-@mqtt_client.on_connect()
-def handle_connect(client, userdata, flags, rc):
-   if rc == 0:
-       print('Connected successfully')
-       mqtt_client.subscribe(topic) # subscribe topic
-   else:
-       print('Bad connection. Code:', rc)
-
-#@mqtt_client.on_message()
-#def on_message_print(client, userdata, message):
-    #print("%s %s" % (message.topic, message.payload))
-    #jsonDATA = json.loads(message.payload)
-    #print(jsonDATA)
-    #time = jsonDATA["time"]
-    #st = time_change(time)
-    #jsonDATA["time"]=st
-    #database.handle_mess(jsonDATA)
-
-#subscribe.callback(on_message_print, "ii22/telemetry/#", hostname="broker.mqttdashboard.com")
-
-#@server.route('/data', methods=['POST'])
-#def response():
-    #print("Got it")
-    #message = request.json
-    #print(message)
-    #database.handle_mess()
-    #return f"Server recieved message {message}"
-
-@server.route("/<robot>", methods=["GET"])
+@server.route("select/<robot>", methods=["GET"])
 def home(robot) -> str:
     rob_name = Robot(f"{robot}")
     rob = Robot.get_rob_name(rob_name)
@@ -67,12 +45,29 @@ def home(robot) -> str:
         class_state = "workingState"
     elif state == "DOWN":
         class_state = "errorState"
-    return render_template("web.html", nID=rob ,state=state, class_state=class_state, lstTmCon=lTimeCon)
+    return render_template("web.html",nID=rob ,state=state, class_state=class_state, lstTmCon=lTimeCon)
 
-#@server.route("/order", methods=["POST"])
-#def newOrder() -> str:
-    #return server.newOrder()
+#Mqtt on message
+def on_message(client, userdata, msg):
+    print("mqtt.on_message")
+    jsonDATA = json.loads(msg.payload)
+    #print(jsonDATA)
+    time = jsonDATA["time"]
+    st = time_change(time)
+    jsonDATA["time"] = st
+    rec_msg = handle_mess(jsonDATA)
+
+#Mqtt thread
+def startSubscription():
+    print("Mqtt subscription started....")
+    client = mqtt.Client()
+    client.on_message = on_message
+    client.connect("broker.mqttdashboard.com")
+    client.subscribe("ii22/telemetry/#")#subscribe all nodes
+    rc = 0
+    while rc == 0:
+        rc = client.loop()
 
 if __name__ == "__main__":
-    server.run(debug=True)
+    server.run()
 
