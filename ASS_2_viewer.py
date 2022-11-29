@@ -6,6 +6,7 @@ import ASS_2_SQLdb
 from ASS_2_robot import Robot, time_change
 import json
 
+# test git
 
 server = Flask(__name__)
 database = ASS_2_SQLdb
@@ -23,7 +24,6 @@ server.config['MQTT_TLS_ENABLED'] = False  # If your server supports TLS, set it
 topic = 'ii22/telemetry/#' #"ii22/telemetry/#"
 
 mqtt_client = Mqtt(server)
-
 
 @mqtt_client.on_connect()
 def handle_connect(client, userdata, flags, rc):
