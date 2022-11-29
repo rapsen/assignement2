@@ -11,17 +11,22 @@ def dict_factory(cursor, row):
 
 
 class Model():
+    """ Class to handle database """
     def __init__(self):
         self.database = DATABASE
         self.table = "Event"
         self.request = ""
+        self.c = None
 
+        self.connect()
+
+        self.create()
+
+    def connect(self):
         self.connexion = sqlite3.connect(
             self.database, check_same_thread=False)
         self.connexion.row_factory = dict_factory
         self.c = self.connexion.cursor()
-
-        self.create()
 
     def create(self):
         """ Create the database if it does not exist """
@@ -36,14 +41,14 @@ class Model():
 
     def execute(self) -> list:
         self.c.execute(self.request)
+        
         return self.c.fetchall()
 
     def __SELECT(self, element="*", condition=True) -> list:
         """ Private method to request element according to the condition """
 
         self.request = f"SELECT {element} FROM {self.table} WHERE {condition}"
-
-        print(self.request)
+        #print(self.request)
 
         return self.execute()
 
@@ -59,10 +64,22 @@ class Model():
     def getAllEventByTime(self, start: int, end: int) -> list:
         return self.__SELECT(condition=f"time BETWEEN {start} AND {end}")
 
+    def getEventById(self, id: int):
+        return self.__SELECT(condition=f"id == {id}")
+    
+    def getAllDeviceId(self):
+        return self.__SELECT(element="DISTINCT deviceId")
 
-db = Model()
+        
 
-# print(db.getAllEvents())
-# print(db.getAllEventByState(STARVED))
-# print(db.getAllEventByRobot("rob1"))
-print(db.getAllEventByTime(1669476872, 1669477333))
+
+model = Model()
+
+# Test get methods
+
+# print(model.getAllEvents())
+# print(model.getAllEventByState(DOWN))
+# print(model.getAllEventByRobot("rob1"))
+# print(model.getAllEventByTime(1669476872, 1669477333))
+# print(model.getEventById(3))
+# print(model.getAllDeviceId())

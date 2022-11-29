@@ -22,9 +22,15 @@
             <h2>Historic</h2>
 
             <form>
-                <label for="id">Robot ID:</label>
 
-                <input type="text" id="id" name="id">
+                <select name="id" id="id-id">
+                    <option value="" selected disabled> Robot ID </option>
+
+                    {% for robot in robots %}
+                        <option value={{ robot }}>{{ robot }}</option>
+                    {% endfor %}
+
+                </select>
 
                 <label for="start">Start date:</label>
 

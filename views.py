@@ -1,4 +1,5 @@
 from flask import Flask, render_template
+from controller import controller as c
 
 app = Flask(__name__)
 
@@ -12,7 +13,7 @@ def dashboard() -> str:
 
 @app.route("/historic")
 def historic() -> str:
-    return render_template("historic.html")
+    return render_template("historic.html", robots=c.robots)
 
 @app.route("/alarms")
 def alarms() -> str:
