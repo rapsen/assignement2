@@ -12,6 +12,7 @@ def dict_factory(cursor, row):
 
 bd = Model()
 
+
 events = bd.getAllEvents()
 
 print(events)
