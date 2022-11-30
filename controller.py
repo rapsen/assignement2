@@ -1,6 +1,5 @@
 from paho.mqtt.client import Client
 from json import loads
-import js2py
 from model import model as m
 from datetime import datetime
 from config import *
@@ -56,7 +55,7 @@ class Controller():
         return self.id
     
     def notify(self):   
-        js2py.
+        pass
     
         
 # Create istance of the controller
