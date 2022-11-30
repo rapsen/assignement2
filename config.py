@@ -1,4 +1,7 @@
+BROKER_HOSTNAME = "broker.mqttdashboard.com"
+MQTT_TOPIC = "ii22/telemetry/"
 
+DATABASE = "data/database.db"
 
 # Possible States
 STARVED = "READY-IDLE-STARVED"

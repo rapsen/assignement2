@@ -13,18 +13,24 @@
 <body>
     <div class="header"></div>
     <div class="topnav">
-        <a href="/dashboard?nID={{nID}}">Dashboard</a>
-        <a href="/historic?nID={{nID}}">Historic</a>
-        <a href="/alarms?nID={{nID}}">Alarms</a>
+        <a href="/dashboard/{{id}}">Dashboard</a>
+        <a href="/historic">Historic</a>
+        <a href="/alarms">Alarms</a>
     </div>
     <div class="row">
         <div class="card">
             <h2>Historic</h2>
 
             <form>
-                <label for="id">Robot ID:</label>
 
-                <input type="text" id="id" name="id">
+                <select name="id" id="id-id">
+                    <option value="" selected disabled> Robot ID </option>
+
+                    {% for robot in robots %}
+                        <option value={{ robot }}>{{ robot }}</option>
+                    {% endfor %}
+
+                </select>
 
                 <label for="start">Start date:</label>
 
