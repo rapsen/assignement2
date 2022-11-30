@@ -12,13 +12,7 @@ class Controller():
 
         
     def on_message(self, client, userdata, msg):
-        # print("mqtt.on_message")
-        jsonDATA = loads(msg.payload)
-        # print(jsonDATA)
-        time = jsonDATA["time"]
-        st = time_change(time)
-        jsonDATA["time"] = st
-        rec_msg = handle_mess(jsonDATA)
+        m.update(loads(msg.payload))
         
     def handle_mess(payload):
         print(f"Got message {payload}")
@@ -28,7 +22,7 @@ class Controller():
         sequenceNr = int(payload["sequenceNumber"])
         insert_robot(robotID, state, time, sequenceNr)
         return payload
-
+    
 
     def suscribe(self):
         print("Mqtt subscription started....")

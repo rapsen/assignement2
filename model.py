@@ -1,5 +1,6 @@
 import sqlite3
-
+from datetime import datetime
+from time import mktime
 from config import *
 
 
@@ -12,11 +13,11 @@ def dict_factory(cursor, row):
 
 class Event():
     def __init__(self, data: dict):
-        self.id = data['id']
+        self.id = None
         self.deviceId = data['deviceId']
         self.state = data['state']
-        self.time = data['time']
-        self.sequenceNumber = data['sequenceNumber']
+        self.time = int(data['time'])
+        self.sequenceNumber = int(data['sequenceNumber'])
 
     def __repr__(self) -> str:
         return f"Event: id={self.id} deviceId={self.deviceId} state={self.state} time={self.time} sequenceNumber={self.sequenceNumber}"
@@ -70,9 +71,21 @@ class Database():
         """ Private method to request element according to the condition """
 
         self.request = f"SELECT {element} FROM {self.table} WHERE {condition}"
-        #print(self.request)
+        # print(self.request)
 
         return self.execute()
+
+    def __INSERT(self, deviceId, state, sequenceNumber, time):
+        """ Private method to insert element """
+
+        self.request = f"INSERT INTO {self.table} (deviceId, state, sequenceNumber, time) \
+                         VALUES ('{deviceId}', '{state}', {sequenceNumber}, {time})"
+        #print(self.request)
+
+        self.execute()
+        
+        self.connexion.commit()
+
 
     def getAllEvents(self) -> list[Event]:
         return [Event(d) for d in self.__SELECT()]
@@ -94,6 +107,9 @@ class Database():
 
     def getLastEventByRobot(self, deviceId: str) -> Event:
         return self.getAllEventByRobot(deviceId)[-1]
+    
+    def addEvent(self, event:Event):
+        return self.__INSERT(event.deviceId, event.state, event.sequenceNumber, event.time)
 
     def getRobEventBetweenTime(self, deviceId: str, start: int, end: int):
         return self.__SELECT(element="deviceId, state, time", condition=f"deviceId = '{deviceId}' and time between '{start}' and '{end}' ORDER BY time ASC;")
@@ -110,11 +126,17 @@ class Model():
             Id = deviceId['deviceId']
             lastEvent = self.db.getLastEventByRobot(Id)
             robots[Id] = Robot(lastEvent)
-
-        print(robots)
-
+        
         return robots
 
+    def addEvent(self, event:Event):
+        print("New event in db: ", event)
+        self.db.addEvent(event)
+
+    def update(self, data: dict):
+        data['time'] = convert(data['time'])
+        self.addEvent(Event(dict(data)))
+        
     def getRobEffBetTime(self, deviceId: str, start, end):
         # sqlSt = f"SELECT state, time FROM robot WHERE deviceId = '{robotID}' and time between " \
         #         f"'{start}' and '{end}' ORDER BY time ASC;"
@@ -170,6 +192,10 @@ class Model():
         efficiency.update({"MEAN": mean_time})
         #print("States:", efficiency)
         return efficiency
+
+
+def convert(time: str) -> int:
+    return int(mktime(datetime.strptime(time[0:26], "%Y-%m-%dT%H:%M:%S.%f").timetuple()))
 
 
 # Create istance of the model
