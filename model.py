@@ -46,8 +46,7 @@ class Database():
         self.create()
 
     def connect(self):
-        self.connexion = sqlite3.connect(
-            self.database, check_same_thread=False)
+        self.connexion = sqlite3.connect(self.database, check_same_thread=False)
         self.connexion.row_factory = dict_factory
         self.c = self.connexion.cursor()
 
@@ -96,7 +95,8 @@ class Database():
     def getLastEventByRobot(self, deviceId: str) -> Event:
         return self.getAllEventByRobot(deviceId)[-1]
 
-
+    def getRobEventBetweenTime(self, deviceId: str, start: int, end: int):
+        return self.__SELECT(element="deviceId, state, time", condition=f"deviceId = '{deviceId}' and time between '{start}' and '{end}' ORDER BY time ASC;")
 class Model():
     def __init__(self):
         # Create the instance of the database
@@ -115,6 +115,62 @@ class Model():
 
         return robots
 
+    def getRobEffBetTime(self, deviceId: str, start, end):
+        # sqlSt = f"SELECT state, time FROM robot WHERE deviceId = '{robotID}' and time between " \
+        #         f"'{start}' and '{end}' ORDER BY time ASC;"
+        # c.execute(sqlSt)
+        # list = c.fetchall()
+
+        list = self.db.getRobEventBetweenTime(deviceId, start, end)
+        stateDict = {}
+        efficiency = {}
+        up_time = 0
+        down_time = 0
+        infailure_times = []
+        for rep in range(len(list) - 1):
+            start_dict = list[rep]
+            end_dict = list[rep + 1]
+            start_time = start_dict["time"]
+            end_time = end_dict["time"]
+            robot_state = start_dict["state"]
+
+            # When failure is repaired
+            if start_dict["state"] == "DOWN" and end_dict["state"] != "DOWN":
+                up_time = end_time
+            # When failure appear
+            elif start_dict["state"] != "DOWN" and end_dict["state"] == "DOWN" and up_time != 0:
+                down_time = end_time
+
+            if up_time != 0 and down_time != 0:
+                infailure_time = round(down_time - up_time, 1)
+                infailure_times.append(infailure_time)
+                up_time = 0
+                down_time = 0
+
+            if robot_state not in stateDict:
+                stateDict.update({robot_state: 0})
+            if start_time > end_time:
+                total_time = round(((24 * 3600) - start_time) + end_time, 1)
+            else:
+                total_time = round(end_time - start_time, 1)
+
+            initialvalue = stateDict[robot_state]
+            initialvalue += total_time
+            stateDict.update({robot_state: initialvalue})
+
+        total_gathered_time = round(sum(stateDict.values()), 1)
+
+        for rep in stateDict:
+            time_state = stateDict[rep]
+            perc = round((time_state * 100) / total_gathered_time, 1)
+            efficiency.update({rep: perc})
+
+        total_fail_time = sum(infailure_times)
+        mean_time = total_fail_time / len(infailure_times)
+        efficiency.update({"MEAN": mean_time})
+        #print("States:", efficiency)
+        return efficiency
+
 
 # Create istance of the model
 model = Model()
@@ -128,3 +184,4 @@ model = Model()
 # print(model.getEventById(3))
 # print(model.getAllDeviceId())
 # print(model.getLastEventByRobot("rob2"))
+# print(model.getRobEffBetTime("rob1", 1669476872, 1669563670))
