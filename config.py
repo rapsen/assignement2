@@ -1,5 +1,6 @@
 BROKER_HOSTNAME = "broker.mqttdashboard.com"
-MQTT_TOPIC = "ii22/telemetry/"
+BROKER_PORT = 1883
+MQTT_TOPIC = "ii22/telemetry/#"
 
 DATABASE = "data/database.db"
 
