@@ -4,7 +4,7 @@ import paho.mqtt.publish as publish
 import threading
 import json
 
-from ASS_2_SQLdb import handle_mess
+from ASS_2_SQLdb import handle_mess, get_realtime_robot_state
 from ASS_2_robot import Robot, time_change
 
 server = Flask(__name__)
