@@ -1,6 +1,6 @@
 from paho.mqtt.client import Client
 from json import loads
-
+import js2py
 from model import model as m
 from datetime import datetime
 from config import *
@@ -22,7 +22,7 @@ class Controller():
         sequenceNr = int(payload["sequenceNumber"])
         insert_robot(robotID, state, time, sequenceNr)
         return payload
-    
+
 
     def suscribe(self):
         print("Mqtt subscription started....")
@@ -55,8 +55,9 @@ class Controller():
     def alarms(self) -> tuple:
         return self.id
     
-    def update(self):
-        pass
+    def notify(self):   
+        js2py.
+    
         
 # Create istance of the controller
 controller = Controller()

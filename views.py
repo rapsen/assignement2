@@ -41,6 +41,8 @@ def alarms() -> str:
     id = c.alarms()
     return render_template("alarms.html", id=id)
 
+@app.route("/update", methods=["POST"])
+
 
 @app.route('/thread/start', methods=['GET'])
 def startThreads():
@@ -63,3 +65,4 @@ def robotMessage() -> str:
     publish.single(MQTT_TOPIC+f"{robID}",
                    event, hostname=BROKER_HOSTNAME)
     return "Hello"
+

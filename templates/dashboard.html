@@ -27,7 +27,6 @@
                 <div class={{class_state}}>
                     <h2>Robot Status</h2>
                     <img id="status" class="center" src="../static/icons/{{status}}.png"></img>
-
                 </div>
             </div>
             
@@ -46,4 +45,22 @@
         </div>
     </div>
 </body>
+<script>
+    let element = document.getElementById("status");
+    let i = 0
+    element.addEventListener("click", update);
+
+    const status = ["active", "error", "idle"]; 
+
+    let s = status[0]
+    
+    
+    function update() {
+        console.log(s);
+        i++;
+        s = status[i % status.length]
+        element.src="../static/icons/"+s+".png";
+      }
+    
+</script>
 </html>

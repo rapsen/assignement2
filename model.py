@@ -22,7 +22,6 @@ class Event():
     def __repr__(self) -> str:
         return f"Event: id={self.id} deviceId={self.deviceId} state={self.state} time={self.time} sequenceNumber={self.sequenceNumber}"
 
-
 class Robot:
     def __init__(self, event: Event):
         self.id = event.deviceId
@@ -134,8 +133,12 @@ class Model():
         self.db.addEvent(event)
 
     def update(self, data: dict):
+        # Update database
         data['time'] = convert(data['time'])
         self.addEvent(Event(dict(data)))
+        
+        # Notify controller
+        #c.notify()
         
     def getRobEffBetTime(self, deviceId: str, start, end):
         # sqlSt = f"SELECT state, time FROM robot WHERE deviceId = '{robotID}' and time between " \
