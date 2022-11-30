@@ -141,11 +141,7 @@ class Model():
         #c.notify()
         
     def getRobEffBetTime(self, deviceId: str, start, end):
-        # sqlSt = f"SELECT state, time FROM robot WHERE deviceId = '{robotID}' and time between " \
-        #         f"'{start}' and '{end}' ORDER BY time ASC;"
-        # c.execute(sqlSt)
-        # list = c.fetchall()
-
+        """ This function calculates KPIs and Mean Time -> returns dict"""
         list = self.db.getRobEventBetweenTime(deviceId, start, end)
         stateDict = {}
         efficiency = {}
@@ -174,10 +170,8 @@ class Model():
 
             if robot_state not in stateDict:
                 stateDict.update({robot_state: 0})
-            if start_time > end_time:
-                total_time = round(((24 * 3600) - start_time) + end_time, 1)
-            else:
-                total_time = round(end_time - start_time, 1)
+
+            total_time = round(end_time - start_time, 1)
 
             initialvalue = stateDict[robot_state]
             initialvalue += total_time
@@ -213,4 +207,4 @@ model = Model()
 # print(model.getEventById(3))
 # print(model.getAllDeviceId())
 # print(model.getLastEventByRobot("rob2"))
-# print(model.getRobEffBetTime("rob2", 1669476872, 1669811095))
+print(model.getRobEffBetTime("rob2", 1669476872, 1669811095))
