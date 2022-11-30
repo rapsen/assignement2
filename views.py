@@ -1,13 +1,12 @@
 from json import loads, dumps
 from flask import Flask, render_template, redirect, request
-from paho.mqtt.client import Client
 import paho.mqtt.publish as publish
 from threading import Thread
 
 from ASS_2_SQLdb import handle_mess
 from ASS_2_robot import Robot, time_change
-from ASS_2_robot import Robot
 from controller import controller as c
+from model import model as m
 from config import *
 
 
@@ -19,35 +18,28 @@ threadStarted = False
 def root() -> str:
     return render_template("web.html")
 
+
 @app.route("/dashboard")
 def _dashboard():
     return dashboard(c.id)
 
+
 @app.route("/dashboard/<robot>")
 def dashboard(robot) -> str:
-    rob_name = Robot(f"{robot}")
-    rob = Robot.get_rob_name(rob_name)
-    state = Robot.get_rob_state(rob_name)
-    lTimeCon = Robot.get_rob_lastTimeCon(rob_name)
-    c.id = robot
-    class_state = ""
-    if state == STARVED:
-        class_state = "idleState"
-    elif state == EXECUTING:
-        class_state = "workingState"
-    elif state == DOWN:
-        class_state = "errorState"
-    return render_template("dashboard.html", id=c.id, state=state, class_state=class_state, lstTmCon=lTimeCon)
+    id, state, lstTmCon, status = c.dashboard(robot)
+    return render_template("dashboard.html", id=id, state=state, lstTmCon=lstTmCon, status=status)
 
 
 @app.route("/historic")
 def historic() -> str:
-    return render_template("historic.html", id=c.id, robots=c.robots)
+    id, robots = c.historic()
+    return render_template("historic.html", id=c.id, robots=m.robots)
 
 
 @app.route("/alarms")
 def alarms() -> str:
-    return render_template("alarms.html", id=c.id)
+    id = c.alarms()
+    return render_template("alarms.html", id=id)
 
 
 @app.route('/thread/start', methods=['GET'])
@@ -58,7 +50,7 @@ def startThreads():
         return "Threads have started already"
     else:
         threadStarted = True
-        x = Thread(target=startSubscription)
+        x = Thread(target=c.suscribe())
         x.start()
         return "Starting threads"
 
@@ -71,24 +63,3 @@ def robotMessage() -> str:
     publish.single(MQTT_TOPIC+f"{robID}",
                    event, hostname=BROKER_HOSTNAME)
     return "Hello"
-
-
-def on_message(client, userdata, msg):
-    # print("mqtt.on_message")
-    jsonDATA = loads(msg.payload)
-    # print(jsonDATA)
-    time = jsonDATA["time"]
-    st = time_change(time)
-    jsonDATA["time"] = st
-    rec_msg = handle_mess(jsonDATA)
-
-
-def startSubscription():
-    print("Mqtt subscription started....")
-    client = Client()
-    client.on_message = on_message
-    client.connect(BROKER_HOSTNAME)
-    client.subscribe(MQTT_TOPIC+"#")  # subscribe all nodes
-    rc = 0
-    while rc == 0:
-        rc = client.loop()

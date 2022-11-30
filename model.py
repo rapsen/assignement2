@@ -10,7 +10,29 @@ def dict_factory(cursor, row):
     return d
 
 
-class Model():
+class Event():
+    def __init__(self, data: dict):
+        self.id = data['id']
+        self.deviceId = data['deviceId']
+        self.state = data['state']
+        self.time = data['time']
+        self.sequenceNumber = data['sequenceNumber']
+
+    def __repr__(self) -> str:
+        return f"Event: id={self.id} deviceId={self.deviceId} state={self.state} time={self.time} sequenceNumber={self.sequenceNumber}"
+
+
+class Robot:
+    def __init__(self, event: Event):
+        self.id = event.deviceId
+        self.state = event.state
+        self.time = event.time
+
+    def __repr__(self) -> str:
+        return f"Robot: id={self.id} state={self.state} time={self.time}"
+
+
+class Database():
     """ Class to handle database """
 
     def __init__(self):
@@ -49,27 +71,50 @@ class Model():
         """ Private method to request element according to the condition """
 
         self.request = f"SELECT {element} FROM {self.table} WHERE {condition}"
-        # print(self.request)
+        #print(self.request)
 
         return self.execute()
 
-    def getAllEvents(self) -> list:
-        return self.__SELECT()
+    def getAllEvents(self) -> list[Event]:
+        return [Event(d) for d in self.__SELECT()]
 
-    def getAllEventByState(self, state: str) -> list:
-        return self.__SELECT(condition=f"state == '{state}'")
+    def getAllEventByState(self, state: str) -> list[Event]:
+        return [Event(d) for d in self.__SELECT(condition=f"state == '{state}'")]
 
-    def getAllEventByRobot(self, deviceId: str) -> list:
-        return self.__SELECT(condition=f"deviceId == '{deviceId}'")
+    def getAllEventByRobot(self, deviceId: str) -> list[Event]:
+        return [Event(d) for d in self.__SELECT(condition=f"deviceId == '{deviceId}'")]
 
-    def getAllEventByTime(self, start: int, end: int) -> list:
-        return self.__SELECT(condition=f"time BETWEEN {start} AND {end}")
+    def getAllEventByTime(self, start: int, end: int) -> list[Event]:
+        return [Event(d) for d in self.__SELECT(condition=f"time BETWEEN {start} AND {end}")]
 
-    def getEventById(self, id: int):
-        return self.__SELECT(condition=f"id == {id}")
+    def getEventById(self, id: int) -> Event:
+        return Event(self.__SELECT(condition=f"id == {id}")[0])
 
-    def getAllDeviceId(self):
+    def getAllDeviceId(self) -> list:
         return self.__SELECT(element="DISTINCT deviceId")
+
+    def getLastEventByRobot(self, deviceId: str) -> Event:
+        return self.getAllEventByRobot(deviceId)[-1]
+
+
+class Model():
+    def __init__(self):
+        # Create the instance of the database
+        self.db = Database()
+        self.robots = self.getRobots()
+
+    def getRobots(self) -> dict:
+        robots = {}
+
+        for deviceId in self.db.getAllDeviceId():
+            Id = deviceId['deviceId']
+            lastEvent = self.db.getLastEventByRobot(Id)
+            robots[Id] = Robot(lastEvent)
+
+        print(robots)
+
+        return robots
+
 
 # Create istance of the model
 model = Model()
@@ -82,3 +127,4 @@ model = Model()
 # print(model.getAllEventByTime(1669476872, 1669477333))
 # print(model.getEventById(3))
 # print(model.getAllDeviceId())
+# print(model.getLastEventByRobot("rob2"))

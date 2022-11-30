@@ -21,11 +21,16 @@
     <div class="row">
         <div class="leftcolumn">
             <div class="card">
-                <h2>Robot: {{nID}}</h2>
-                    <div class={{class_state}}>
-                        <h2>Color-based state</h2>
-                    </div>
+                <h2>Dashboard{{nID}}</h2>
             </div>
+            <div class="card">
+                <div class={{class_state}}>
+                    <h2>Robot Status</h2>
+                    <img id="status" class="center" src="../static/icons/{{status}}.png"></img>
+
+                </div>
+            </div>
+            
         </div>
         <div class="rightcolumn">
             <div class="card">
@@ -40,6 +45,5 @@
 
         </div>
     </div>
-    <script src="dashboard.js"></script>
 </body>
 </html>
