@@ -52,10 +52,22 @@
 
         //Ajax requests
 
+        // function efficiency() {
+        //     //Ajax request
+        //
+        //     $.get('/api/historic/', function (data) {
+        //
+        //         dataObj = JSON.parse(data);
+        //         console.log("Efficiency of robot")
+        //         console.log(dataObj);
+        //         $("#efficiency").html(data)
+        //     });
+        // }
+
         function efficiency() {
             //Ajax request
 
-            $.get('/api/historic/', function (data) {
+            $.get('/api/realstate/', function (data) {
 
                 dataObj = JSON.parse(data);
                 console.log("Efficiency of robot")
@@ -63,17 +75,7 @@
                 $("#efficiency").html(data)
             });
         }
-        // function efficiency() {
-        //     //Ajax request
-        //
-        //     $.get('/api/realstate/', function (data) {
-        //
-        //         dataObj = JSON.parse(data);
-        //         console.log("Efficiency of robot")
-        //         console.log(dataObj);
-        //         $("#efficiency").html(data)
-        //     });
-        }
+
         // //Web UI update
         //
         // function publish(currentState) {

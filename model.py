@@ -106,6 +106,9 @@ class Database():
 
     def getLastEventByRobot(self, deviceId: str) -> Event:
         return self.getAllEventByRobot(deviceId)[-1]
+
+    def getLastStateByRobot(self, deviceId: str):
+        return self.__SELECT(element="deviceId, state, time", condition=f"deviceId = '{deviceId}' ORDER BY time DESC;")
     
     def addEvent(self, event:Event):
         return self.__INSERT(event.deviceId, event.state, event.sequenceNumber, event.time)
@@ -142,8 +145,7 @@ class Model():
         #c.notify()
 
     def getlaststate(self, deviceId: str):
-        data = self.robot
-        print(data)
+        data = self.db.getLastStateByRobot(deviceId)[0]
         return data
 
     def getRobEffBetTime(self, deviceId: str, start, end):

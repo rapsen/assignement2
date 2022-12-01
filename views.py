@@ -76,6 +76,6 @@ def historicdata():
 @app.route("/api/realstate/")
 def realtimestate():
     # data = {"deviceId": "rob1", "state": "READY", "time": 1669476872}
-    inputdata = m.get
+    inputdata = m.getlaststate("rob2")
     data = json.dumps(inputdata)
     return data
