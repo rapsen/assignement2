@@ -1,10 +1,9 @@
+import json
 from json import loads, dumps
 from flask import Flask, render_template, redirect, request
 import paho.mqtt.publish as publish
 from threading import Thread
 
-from ASS_2_SQLdb import handle_mess
-from ASS_2_robot import Robot, time_change
 from controller import controller as c
 from model import model as m
 from config import *
@@ -66,3 +65,17 @@ def robotMessage() -> str:
                    event, hostname=BROKER_HOSTNAME)
     return "Hello"
 
+""" Backend for Web UI"""
+@app.route("/api/historic/")
+def historicdata():
+    # data = {"deviceId": "rob1", "state": "READY", "time": 1669476872}
+    inputdata = m.getRobEffBetTime("rob1", 1669476872, 1669812579)
+    data = json.dumps(inputdata)
+    return data
+
+@app.route("/api/realstate/")
+def realtimestate():
+    # data = {"deviceId": "rob1", "state": "READY", "time": 1669476872}
+    inputdata = m.get
+    data = json.dumps(inputdata)
+    return data

@@ -22,7 +22,7 @@ class Event():
     def __repr__(self) -> str:
         return f"Event: id={self.id} deviceId={self.deviceId} state={self.state} time={self.time} sequenceNumber={self.sequenceNumber}"
 
-class Robot:
+class Robot():
     def __init__(self, event: Event):
         self.id = event.deviceId
         self.state = event.state
@@ -112,6 +112,7 @@ class Database():
 
     def getRobEventBetweenTime(self, deviceId: str, start: int, end: int):
         return self.__SELECT(element="deviceId, state, time", condition=f"deviceId = '{deviceId}' and time between '{start}' and '{end}' ORDER BY time ASC;")
+
 class Model():
     def __init__(self):
         # Create the instance of the database
@@ -139,7 +140,12 @@ class Model():
         
         # Notify controller
         #c.notify()
-        
+
+    def getlaststate(self, deviceId: str):
+        data = self.robot
+        print(data)
+        return data
+
     def getRobEffBetTime(self, deviceId: str, start, end):
         """ This function calculates KPIs and Mean Time -> returns dict"""
         list = self.db.getRobEventBetweenTime(deviceId, start, end)
@@ -195,7 +201,7 @@ def convert(time: str) -> int:
     return int(mktime(datetime.strptime(time[0:26], "%Y-%m-%dT%H:%M:%S.%f").timetuple()))
 
 
-# Create istance of the model
+# Create instance of the model
 model = Model()
 
 # Test get methods
@@ -207,4 +213,5 @@ model = Model()
 # print(model.getEventById(3))
 # print(model.getAllDeviceId())
 # print(model.getLastEventByRobot("rob2"))
-print(model.getRobEffBetTime("rob2", 1669476872, 1669811095))
+# print(model.getRobEffBetTime("rob2", 1669476872, 1669811095))
+# print(model.getlaststate("rob1"))

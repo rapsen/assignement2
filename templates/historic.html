@@ -20,7 +20,7 @@
     <div class="row">
         <div class="card">
             <h2>Historic</h2>
-
+            <h3 id="efficiency"></h3>
             <form>
 
                 <select name="id" id="id-id">
@@ -44,7 +44,41 @@
         
     </div>
     <script>
+        //Run a function every 1000 ms
+        window.setInterval(function(){
+            efficiency();
 
+        }, 1000);
+
+        //Ajax requests
+
+        function efficiency() {
+            //Ajax request
+
+            $.get('/api/historic/', function (data) {
+
+                dataObj = JSON.parse(data);
+                console.log("Efficiency of robot")
+                console.log(dataObj);
+                $("#efficiency").html(data)
+            });
+        }
+        // function efficiency() {
+        //     //Ajax request
+        //
+        //     $.get('/api/realstate/', function (data) {
+        //
+        //         dataObj = JSON.parse(data);
+        //         console.log("Efficiency of robot")
+        //         console.log(dataObj);
+        //         $("#efficiency").html(data)
+        //     });
+        }
+        // //Web UI update
+        //
+        // function publish(currentState) {
+        //     $("#elementID").html(currentState);
+        // }
 
 
 
