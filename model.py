@@ -109,6 +109,10 @@ class Database():
     def getRobEventBetweenTime(self, deviceId: str, start: int, end: int):
         return self.__SELECT(element="deviceId, state, time", condition=f"deviceId = '{deviceId}' and time between '{start}' and '{end}' ORDER BY time ASC;")
 
+    def getStateById(self, deviceId: str, state: str) -> list:
+        return self.__SELECT(element=f"id,time", condition=f"deviceId='{deviceId}' AND state='{state}'")
+
+
 
 class Model():
     def __init__(self):
@@ -205,39 +209,27 @@ class Model():
         #print("States:", efficiency)
         return efficiency
 
-    def getRobAlarms(self, deviceId: str, start: int, end: int):
-        list = self.db.getRobEventBetweenTime(deviceId, start, end)
-        idle_alarm = 60     # alarm time for IDLE state in seconds
-        down_alarm = 180    # alarm time for DOWN state in seconds
-        alarms = []         # list of alarms
-        alarm_id = 0
-        for rep in range(len(list) - 1):
-            start_dict = list[rep]
-            end_dict = list[rep + 1]
-            start_time = start_dict["time"]
-            end_time = end_dict["time"]
+    def getAlarmForState(self, deviceId: str, timeAlarm: int, state: str):
+        robot = self.db.getAllEventByRobot(deviceId)
+        EventsInAlarm = []
 
-            # Alarms for states IDLE and DOWN
-            time_exceed_idle = start_time + idle_alarm
-            time_exceed_down = start_time + down_alarm
-            if time_exceed_idle < end_time and start_dict["state"] == "READY-IDLE-STARVED":
-                mess = f"CAUTION: {deviceId} in {start_dict['state']} state more than {idle_alarm} s"
-                alarm_id += 1
-                # list of information
-                report = alarm_id, mess, start_time
-                alarms.append(report)
+        for robotState in self.db.getStateById(deviceId, state):
+            for i in range(0, len(robot) - 1):
 
-            if time_exceed_down < end_time and start_dict["state"] == "DOWN":
-                mess = f"CAUTION: {deviceId} in {start_dict['state']} state more than {down_alarm} s"
-                alarm_id += 1
-                # list of information
-                report = alarm_id, mess, start_time
-                alarms.append(report)
+                if (robot[i].id == robotState['id']):
 
-        # print(len(alarms))
-        return alarms
+                    #print("time state start ",robot[i-1].time," ",robot[i].time)
+                    timesStartState = int(robot[i - 1].time)
 
+                    timeEndState = int(robot[i + 1].time)
+                    #print("time state end   ",robot[i+1].time," ",robot[i].time)
+                    timeEvent = timeEndState - timesStartState
+                    if (timeEvent > timeAlarm):
+                        EventsInAlarm.append(robot[i])
+                        print(
+                            f"/!\ Warning:in event {robot[i].id} device {deviceId} is {timeEvent} seconds in {state} state")
 
+        return EventsInAlarm
 
 def convert(time: str) -> int:
     return int(mktime(datetime.strptime(time[0:26], "%Y-%m-%dT%H:%M:%S.%f").timetuple()))
@@ -247,6 +239,8 @@ def convert(time: str) -> int:
 model = Model()
 
 # Test get methods
+#print(model.getAlarmForState('rob1',600,'DOWN'))
+
 # print(model.db.getAllEvents())
 # print(model.getAllEventByState(DOWN))
 # print(model.getAllEventByRobot("rob1"))
@@ -254,6 +248,5 @@ model = Model()
 # print(model.getEventById(3))
 # print(model.getAllDeviceId())
 # print(model.getLastEventByRobot("rob2"))
-# print(model.getRobEffBetTime("rob2", 1669476872, 1669977340))
+# print(model.getRobEffBetTime("rob2", 1669476872, 1669811095))
 # print(model.getlaststate("rob1"))
-# print(model.getRobAlarms("rob2", 1669476872, 1669977340))
