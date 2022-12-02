@@ -108,9 +108,10 @@ class Database():
 
     def getRobEventBetweenTime(self, deviceId: str, start: int, end: int):
         return self.__SELECT(element="deviceId, state, time", condition=f"deviceId = '{deviceId}' and time between '{start}' and '{end}' ORDER BY time ASC;")
-        
-        
-        
+
+    def getStateById(self, deviceId: str, state: str) -> list:
+        return self.__SELECT(element=f"id,time", condition=f"deviceId='{deviceId}' AND state='{state}'")
+
 
 
 class Model():
@@ -208,6 +209,27 @@ class Model():
         #print("States:", efficiency)
         return efficiency
 
+    def getAlarmForState(self, deviceId: str, timeAlarm: int, state: str):
+        robot = self.db.getAllEventByRobot(deviceId)
+        EventsInAlarm = []
+
+        for robotState in self.db.getStateById(deviceId, state):
+            for i in range(0, len(robot) - 1):
+
+                if (robot[i].id == robotState['id']):
+
+                    #print("time state start ",robot[i-1].time," ",robot[i].time)
+                    timesStartState = int(robot[i - 1].time)
+
+                    timeEndState = int(robot[i + 1].time)
+                    #print("time state end   ",robot[i+1].time," ",robot[i].time)
+                    timeEvent = timeEndState - timesStartState
+                    if (timeEvent > timeAlarm):
+                        EventsInAlarm.append(robot[i])
+                        print(
+                            f"/!\ Warning:in event {robot[i].id} device {deviceId} is {timeEvent} seconds in {state} state")
+
+        return EventsInAlarm
 
 def convert(time: str) -> int:
     return int(mktime(datetime.strptime(time[0:26], "%Y-%m-%dT%H:%M:%S.%f").timetuple()))
@@ -217,6 +239,8 @@ def convert(time: str) -> int:
 model = Model()
 
 # Test get methods
+#print(model.getAlarmForState('rob1',600,'DOWN'))
+
 # print(model.db.getAllEvents())
 # print(model.getAllEventByState(DOWN))
 # print(model.getAllEventByRobot("rob1"))
