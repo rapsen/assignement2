@@ -1,4 +1,4 @@
-import sqlite3
+from sqlite3 import connect
 from datetime import datetime
 from time import mktime
 
@@ -50,44 +50,28 @@ class Database():
         self.request = ""
         self.c = None
 
-        self.connect()
-
-        self.create()
-
-    def connect(self):
-        self.connexion = sqlite3.connect(
+        self.connexion = connect(
             self.database, check_same_thread=False)
         self.connexion.row_factory = dict_factory
         self.c = self.connexion.cursor()
-
-    def create(self):
-        """ Create the database if it does not exist """
-
-        self.c.execute("""CREATE TABLE IF NOT EXISTS Event (
-                            id INTEGER PRIMARY KEY AUTOINCREMENT,
-                            deviceId text, 
-                            state text, 
-                            time text, 
-                            sequenceNumber integer
-                            );""")
 
     def execute(self) -> list:
         self.c.execute(self.request)
 
         return self.c.fetchall()
 
-    def __SELECT(self, element="*", condition=True) -> list:
+    def __SELECT(self, table=EVENT, element="*", condition=True) -> list:
         """ Private method to request element according to the condition """
 
-        self.request = f"SELECT {element} FROM {self.table} WHERE {condition}"
+        self.request = f"SELECT {element} FROM {table} WHERE {condition}"
         # print(self.request)
 
         return self.execute()
 
-    def __INSERT(self, deviceId, state, sequenceNumber, time):
+    def __INSERT(self, table, deviceId, state, sequenceNumber, time):
         """ Private method to insert element """
 
-        self.request = f"INSERT INTO {self.table} (deviceId, state, sequenceNumber, time) \
+        self.request = f"INSERT INTO {table} (deviceId, state, sequenceNumber, time) \
                          VALUES ('{deviceId}', '{state}', {sequenceNumber}, {time})"
         # print(self.request)
 
@@ -95,7 +79,7 @@ class Database():
 
         self.connexion.commit()
 
-    def getAllEvents(self) -> list[Event]:
+    def getAllEvents(self) -> Event:
         return [Event(d) for d in self.__SELECT()]
 
     def getAllEventByState(self, state: str) -> list[Event]:
@@ -120,10 +104,13 @@ class Database():
         return self.__SELECT(element="deviceId, state, time", condition=f"deviceId = '{deviceId}' ORDER BY time DESC;")
 
     def addEvent(self, event: Event):
-        return self.__INSERT(event.deviceId, event.state, event.sequenceNumber, event.time)
+        return self.__INSERT(EVENT, event.deviceId, event.state, event.sequenceNumber, event.time)
 
     def getRobEventBetweenTime(self, deviceId: str, start: int, end: int):
         return self.__SELECT(element="deviceId, state, time", condition=f"deviceId = '{deviceId}' and time between '{start}' and '{end}' ORDER BY time ASC;")
+        
+        
+        
 
 
 class Model():
@@ -230,8 +217,7 @@ def convert(time: str) -> int:
 model = Model()
 
 # Test get methods
-
-# print(model.getAllEvents())
+# print(model.db.getAllEvents())
 # print(model.getAllEventByState(DOWN))
 # print(model.getAllEventByRobot("rob1"))
 # print(model.getAllEventByTime(1669476872, 1669477333))
