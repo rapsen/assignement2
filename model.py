@@ -1,6 +1,7 @@
 import sqlite3
 from datetime import datetime
 from time import mktime
+
 from config import *
 
 
@@ -16,11 +17,19 @@ class Event():
         self.id = None
         self.deviceId = data['deviceId']
         self.state = data['state']
-        self.time = int(data['time'])
+        self.time = data['time']
         self.sequenceNumber = int(data['sequenceNumber'])
+
+        self.convert()
 
     def __repr__(self) -> str:
         return f"Event: id={self.id} deviceId={self.deviceId} state={self.state} time={self.time} sequenceNumber={self.sequenceNumber}"
+
+    def convert(self):
+        if type(self.time) is str:
+            self.time = int(mktime(datetime.strptime(
+                self.time[0:26], "%Y-%m-%dT%H:%M:%S.%f").timetuple()))
+
 
 class Robot:
     def __init__(self, event: Event):
@@ -46,7 +55,8 @@ class Database():
         self.create()
 
     def connect(self):
-        self.connexion = sqlite3.connect(self.database, check_same_thread=False)
+        self.connexion = sqlite3.connect(
+            self.database, check_same_thread=False)
         self.connexion.row_factory = dict_factory
         self.c = self.connexion.cursor()
 
@@ -79,12 +89,11 @@ class Database():
 
         self.request = f"INSERT INTO {self.table} (deviceId, state, sequenceNumber, time) \
                          VALUES ('{deviceId}', '{state}', {sequenceNumber}, {time})"
-        #print(self.request)
+        # print(self.request)
 
         self.execute()
-        
-        self.connexion.commit()
 
+        self.connexion.commit()
 
     def getAllEvents(self) -> list[Event]:
         return [Event(d) for d in self.__SELECT()]
@@ -106,12 +115,14 @@ class Database():
 
     def getLastEventByRobot(self, deviceId: str) -> Event:
         return self.getAllEventByRobot(deviceId)[-1]
-    
-    def addEvent(self, event:Event):
+
+    def addEvent(self, event: Event):
         return self.__INSERT(event.deviceId, event.state, event.sequenceNumber, event.time)
 
     def getRobEventBetweenTime(self, deviceId: str, start: int, end: int):
         return self.__SELECT(element="deviceId, state, time", condition=f"deviceId = '{deviceId}' and time between '{start}' and '{end}' ORDER BY time ASC;")
+
+
 class Model():
     def __init__(self):
         # Create the instance of the database
@@ -125,21 +136,22 @@ class Model():
             Id = deviceId['deviceId']
             lastEvent = self.db.getLastEventByRobot(Id)
             robots[Id] = Robot(lastEvent)
-        
+
         return robots
 
-    def addEvent(self, event:Event):
+    def addEvent(self, event: Event):
         print("New event in db: ", event)
         self.db.addEvent(event)
 
-    def update(self, data: dict):
-        # Update database
-        data['time'] = convert(data['time'])
-        self.addEvent(Event(dict(data)))
-        
-        # Notify controller
-        #c.notify()
-        
+    def last_event(self, id: str) -> Event:
+        a = self.db.getLastEventByRobot(id).__dict__
+        print(a)
+        return a
+
+    def handle(self, data: dict) -> None:
+        event = Event(data)
+        model.db.addEvent(event)
+
     def getRobEffBetTime(self, deviceId: str, start, end):
         # sqlSt = f"SELECT state, time FROM robot WHERE deviceId = '{robotID}' and time between " \
         #         f"'{start}' and '{end}' ORDER BY time ASC;"
@@ -195,10 +207,6 @@ class Model():
         efficiency.update({"MEAN": mean_time})
         #print("States:", efficiency)
         return efficiency
-
-
-def convert(time: str) -> int:
-    return int(mktime(datetime.strptime(time[0:26], "%Y-%m-%dT%H:%M:%S.%f").timetuple()))
 
 
 # Create istance of the model

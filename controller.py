@@ -1,62 +1,78 @@
-from paho.mqtt.client import Client
+from datetime import datetime, timedelta
 from json import loads
-from model import model as m
-from datetime import datetime
+
+from flask_mqtt import MQTT_LOG_ERR, Mqtt
+from flask_socketio import SocketIO
+
 from config import *
+from model import model
+
+# Create the socket
+socket = SocketIO()
+# Create the mqtt client
+mqtt = Mqtt()
+
+
+@socket.on('ask')
+def ask(robot):
+    data = model.last_event(robot)
+    data['time'] = str(datetime.fromtimestamp(
+        data['time']) + timedelta(hours=2))
+    socket.emit('update', data=data)
+
+
+@mqtt.on_message()
+def handle_mqtt_message(client, userdata, message):
+    data = loads(message.payload.decode())
+    controller.handle(data)
+    data['time'] = str(datetime.fromisoformat(
+        data['time'][:19]) + timedelta(hours=2))
+    socket.emit('update', data=data)
+
+
+@mqtt.on_log()
+def handle_logging(client, userdata, level, buf):
+    if level == MQTT_LOG_ERR:
+        print('Error: {}'.format(buf))
+
 
 class Controller():
     def __init__(self) -> None:
-        self.id = list(m.robots.keys())[0]
-        self.client = Client()
+        self.id = list(model.robots.keys())[0]
 
-        
     def on_message(self, client, userdata, msg):
-        m.update(loads(msg.payload))
-        
-    def handle_mess(payload):
-        print(f"Got message {payload}")
-        robotID = payload["deviceId"]
-        state = payload["state"]
-        time = payload["time"]
-        sequenceNr = int(payload["sequenceNumber"])
-        insert_robot(robotID, state, time, sequenceNr)
-        return payload
+        model.update(loads(msg.payload))
 
+    def handle(self, data: dict) -> None:
+        model.handle(data)
 
-    def suscribe(self):
-        print("Mqtt subscription started....")
-        self.client.on_message = self.on_message
-        self.client.connect(BROKER_HOSTNAME)
-        self.client.subscribe(MQTT_TOPIC+"#")  # subscribe all nodes
-        rc = 0
-        while rc == 0:
-            rc = self.client.loop()
-    
-             
-    def dashboard(self, id:str) -> tuple:
-        self.id = id
-        last_time = datetime.fromtimestamp(m.robots[id].time)
-        state = m.robots[id].state
-        
-        match state:
-            case "OFF" | "DOWN":
-                status = "error"
-            case "SETUP" | "READY-IDLE-STARVED" | "READY-IDLE-BLOCKED":
-                status = "idle"
-            case "READY-PROCESSING-EXECUTING" | "READY-PROCESSING-ACTIVE":
-                status ="active"
-        
-        return self.id, state, last_time, status
-    
+    def dashboard(self, id: str = None) -> tuple:
+        self.id = self.id if id is None else id
+        last_time = datetime.fromtimestamp(
+            model.robots[self.id].time) + timedelta(hours=2)
+        state = model.robots[self.id].state
+        return self.id, state, last_time, status(state)
+
     def historic(self) -> tuple:
-        return self.id, list(m.robots.values())
-        
+        return self.id, list(model.robots.values())
+
     def alarms(self) -> tuple:
         return self.id
-    
-    def notify(self):   
+
+    def notify(self):
         pass
-    
-        
+
+
+def status(state: str) -> str:
+    """ Return the status of the robot """
+    if state in [EXECUTING, ACTIVE]:
+        status = PROCESSING
+    elif state in [BLOCKED, STARVED]:
+        status = IDLE
+    else:
+        status = ERROR
+    return status
+
+
 # Create istance of the controller
 controller = Controller()

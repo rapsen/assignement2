@@ -1,16 +1,21 @@
-
 <!DOCTYPE html>
 <html>
+
 <head>
-    <link rel="shortcut icon" href="https://s3.amazonaws.com/django-blog/ico/favicon_v2.ico">
+    <link rel="shortcut icon" href="static/icons/favicon.ico">
+
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.js"></script>
     <script src="https://cdn.anychart.com/releases/v8/js/anychart-core.min.js"></script>
     <script src="https://cdn.anychart.com/releases/v8/js/anychart-pie.min.js"></script>
 
+    <script src="https://cdn.socket.io/4.2.0/socket.io.js"></script>
+
+
     <link rel="stylesheet" href="../static/css/stylesheet.css">
-    
-    <title>Dashboard for robot: {{nID}}</title>
+
+    <title>Dashboard {{nID}}</title>
 </head>
+
 <body>
     <div class="header"></div>
     <div class="topnav">
@@ -21,46 +26,37 @@
     <div class="row">
         <div class="leftcolumn">
             <div class="card">
-                <h2>Dashboard{{nID}}</h2>
+                <h2>Dashboard
+                    <select class="select" id="select" onChange="ask(this)">
+                        {% for r in robots %}
+                        <option value={{r}}>{{r}}</option>
+                        {% endfor %}
+                    </select>
+                </h2>
             </div>
             <div class="card">
                 <div class={{class_state}}>
-                    <h2>Robot Status</h2>
+                    <h2>Status</h2>
                     <img id="status" class="center" src="../static/icons/{{status}}.png"></img>
                 </div>
             </div>
-            
+
         </div>
         <div class="rightcolumn">
             <div class="card">
-                <h2>Current State</h2>
-                <div id="currentState" style="height:100px;">{{state}}</div>
+                <h2>State</h2>
+                <div id="state" style="padding-left: 10px">{{state}}</div>
             </div>
 
             <div class="card">
-                <h3>Last time connected</h3>
-                <div id="lastTimeConnected" style="height:100px;" onClick=functionmyfunction()>{{lstTmCon}}</div>
+                <h3>Last message received at:</h3>
+                <div id="time" style="padding-left: 10px">{{time}}</div>
             </div>
 
         </div>
     </div>
 </body>
-<script>
-    let element = document.getElementById("status");
-    let i = 0
-    element.addEventListener("click", update);
-
-    const status = ["active", "error", "idle"]; 
-
-    let s = status[0]
-    
-    
-    function update() {
-        console.log(s);
-        i++;
-        s = status[i % status.length]
-        element.src="../static/icons/"+s+".png";
-      }
-    
+<script src="../static/js/dashboard.js" type="text/javascript">
 </script>
+
 </html>
