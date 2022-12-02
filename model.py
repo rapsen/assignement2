@@ -116,6 +116,9 @@ class Database():
     def getLastEventByRobot(self, deviceId: str) -> Event:
         return self.getAllEventByRobot(deviceId)[-1]
 
+    def getLastStateByRobot(self, deviceId: str):
+        return self.__SELECT(element="deviceId, state, time", condition=f"deviceId = '{deviceId}' ORDER BY time DESC;")
+
     def addEvent(self, event: Event):
         return self.__INSERT(event.deviceId, event.state, event.sequenceNumber, event.time)
 
@@ -157,7 +160,19 @@ class Model():
         #         f"'{start}' and '{end}' ORDER BY time ASC;"
         # c.execute(sqlSt)
         # list = c.fetchall()
+        pass
 
+    def update(self, data: dict):
+        # Update database
+        data['time'] = convert(data['time'])
+        self.addEvent(Event(dict(data)))
+
+    def getlaststate(self, deviceId: str):
+        data = self.db.getLastStateByRobot(deviceId)[0]
+        return data
+
+    def getRobEffBetTime(self, deviceId: str, start, end):
+        """ This function calculates KPIs and Mean Time -> returns dict"""
         list = self.db.getRobEventBetweenTime(deviceId, start, end)
         stateDict = {}
         efficiency = {}
@@ -186,10 +201,8 @@ class Model():
 
             if robot_state not in stateDict:
                 stateDict.update({robot_state: 0})
-            if start_time > end_time:
-                total_time = round(((24 * 3600) - start_time) + end_time, 1)
-            else:
-                total_time = round(end_time - start_time, 1)
+
+            total_time = round(end_time - start_time, 1)
 
             initialvalue = stateDict[robot_state]
             initialvalue += total_time
@@ -209,7 +222,11 @@ class Model():
         return efficiency
 
 
-# Create istance of the model
+def convert(time: str) -> int:
+    return int(mktime(datetime.strptime(time[0:26], "%Y-%m-%dT%H:%M:%S.%f").timetuple()))
+
+
+# Create instance of the model
 model = Model()
 
 # Test get methods
@@ -222,3 +239,4 @@ model = Model()
 # print(model.getAllDeviceId())
 # print(model.getLastEventByRobot("rob2"))
 # print(model.getRobEffBetTime("rob2", 1669476872, 1669811095))
+# print(model.getlaststate("rob1"))
