@@ -1,6 +1,6 @@
-
 <!DOCTYPE html>
 <html>
+
 <head>
     <link rel="shortcut icon" href="static/icons/favicon.ico">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.js"></script>
@@ -8,9 +8,10 @@
     <script src="https://cdn.anychart.com/releases/v8/js/anychart-pie.min.js"></script>
 
     <link rel="stylesheet" href="../static/css/stylesheet.css">
-    
+
     <title>Alarms</title>
 </head>
+
 <body>
     <div class="header"></div>
     <div class="topnav">
@@ -19,33 +20,54 @@
         <a href="/alarms">Alarms</a>
     </div>
     <div class="row">
-            <div class="card">
-                <h2>Alarms {{nID}}</h2>
+        <div class="card">
+            <h2>Alarms
+                <select class="select" id="select" onChange="ask(this)">
+                    {% for r in robots %}
+                    <option value={{r}}>{{r}}</option>
+                    {% endfor %}
+                </select>
+            </h2>
+            <form submit="print()">
+                <label for="start">FROM</label>
 
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Events</th>
-                            <th>Datetime</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td>Event 1</td>
-                            <td>Time 1</td>
+                <input type="date" class="datetime" id="start-date">
+                <input type="time" class="datetime" id="start-time">
 
-                        </tr>
-                        <tr>
-                            <td>Event 2</td>
-                            <td>Time 2</td>
 
-                        </tr>
-                    </tbody>
+                <label for="end">UNTIL</label>
 
-                </table>
-                
-            </div>
+                <input type="date" class="datetime" id="end-date">
+                <input type="time" class="datetime" id="end-time">                
+                <input type="submit" value="Search Data" />
+
+            </form>
         </div>
+        <div class="card">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Events</th>
+                        <th>Datetime</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Event 1</td>
+                        <td>Time 1</td>
+
+                    </tr>
+                    <tr>
+                        <td>Event 2</td>
+                        <td>Time 2</td>
+
+                    </tr>
+                </tbody>
+
+            </table>
+
+        </div>
+    </div>
 
     </div>
     <script>
@@ -55,4 +77,5 @@
 
     </script>
 </body>
+
 </html>

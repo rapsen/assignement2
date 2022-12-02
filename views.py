@@ -37,7 +37,7 @@ def historic() -> str:
 @app.route("/alarms")
 def alarms() -> str:
     id = controller.alarms()
-    return render_template("alarms.html", id=id)
+    return render_template("alarms.html", id=id, robots=model.robots)
 
 
 @app.route('/thread/start', methods=['GET'])
