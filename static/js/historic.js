@@ -23,11 +23,11 @@ function drawChart() {
     chart.draw(data, options);
 }
 
-// $(document).ready()
-// {
-//     document.getElementById('start').value = time();
-//     document.getElementById('end').value = time()
-// }
+$(document).ready()
+{
+    document.getElementById('start').value = time();
+    document.getElementById('end').value = time()
+}
 
 function time() {
     let time = new Date();
