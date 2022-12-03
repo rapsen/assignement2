@@ -6,6 +6,9 @@
     <script src="https://cdn.anychart.com/releases/v8/js/anychart-core.min.js"></script>
     <script src="https://cdn.anychart.com/releases/v8/js/anychart-pie.min.js"></script>
 
+    <script src="https://cdn.socket.io/4.2.0/socket.io.js"></script>
+    <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+
     <link rel="stylesheet" href="../static/css/stylesheet.css">
     
     <title>Historic</title>
@@ -21,30 +24,32 @@
 
         <div class="card">
             <h2>Historic
-                <select class="select" id="select" onChange="now()">
+                <select class="select" id="select" onChange="change()">
                     {% for r in robots %}
-                    <option value={{r}}>{{r}}</option>
+                    <option value={{r}} {% if r == id %}selected {% endif %}>{{r}}</option>
                     {% endfor %}
                 </select>
             </h2>
-            <form submit="print()">
+            <form method="post">
+                <input type="text" name="id" id="id" value={{id}} hidden>
+
                 <label for="start">FROM</label>
-
-                <input type="date" class="datetime" id="start-date">
-                <input type="time" class="datetime" id="start-time">
-
+                <input type="datetime-local" class="datetime" name="start-date" id="start" required>
 
                 <label for="end">UNTIL</label>
+                <input type="datetime-local" class="datetime" name="end-date" id="end" required>
 
-                <input type="date" class="datetime" id="end-date">
-                <input type="time" class="datetime" id="end-time">                
-                <input type="submit" value="Search Data" />
+                <input type="submit" value="Search Data"/>
 
             </form>
         </div>
-        <div class="card">
-            <h3 id="efficiency"></h3>
-
+        <div class="leftcolumn">
+            <div class="card">
+                <data id="efficiency" value="{{efficiency}}"></data>
+                <div id="piechart"></div>
+            </div>
+        </div>
+        <div class="rightcolumn">
         </div>
 
         
@@ -87,7 +92,6 @@
         // function publish(currentState) {
         //     $("#elementID").html(currentState);
         // }
-        now()
 
 
 

@@ -163,3 +163,5 @@ background-color:#ff4040;
     height: 40px;
     font-size: 1em;
 }
+
+.google-visualization-tooltip { pointer-events: none; }

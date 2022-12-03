@@ -1,11 +1,11 @@
 from datetime import datetime, timedelta
-from json import loads
+from json import loads, dumps
 
 from flask_mqtt import MQTT_LOG_ERR, Mqtt
 from flask_socketio import SocketIO
 
 from config import *
-from model import model
+from model import model, iso2timestamp
 
 # Create the socket
 socket = SocketIO()
@@ -55,6 +55,13 @@ class Controller():
 
     def historic(self) -> tuple:
         return self.id, list(model.robots.values())
+
+    def efficiency(self, form: dict) -> dict:
+        id, start, end = form.values()
+        self.id = id
+        print(self.id)
+        start, end = iso2timestamp(start), iso2timestamp(end)
+        return model.getRobEffBetTime(self.id, start, end)
 
     def alarms(self) -> tuple:
         return self.id

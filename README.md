@@ -66,9 +66,9 @@ _Below is the instruction to create the environment and run locally the web appl
   - [x] Real time Dashbaord
      - [x] Latest state of given robot
   - [ ] Hictorical Data
-    - [ ] User filters by robotId and time window
+    - [x] User filters by robotId and time window
     - [ ] Show two KPIs for this filtered data
-      - [ ] Percentage of time in each state
+      - [x] Percentage of time in each state
       - [ ] MTBF: Mean Time between Failures
   - [ ] Alarms
     - [ ] Log if a robot has been more than X amount of time in IDLE state

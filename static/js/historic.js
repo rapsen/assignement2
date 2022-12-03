@@ -1,19 +1,41 @@
-function now() {
-    var today = new Date();
-    var date = today.getFullYear()+'-'+(today.getMonth()+1)+'-'+today.getDate();
-    var time = today.getHours() + ":" + today.getMinutes() + ":" + today.getSeconds();
 
-    return date+'T'+time;
+// Load google charts
+google.load("visualization", "1", { packages: ["corechart"] });
+google.charts.setOnLoadCallback(drawChart);
+
+// Draw the chart and set the chart values
+function drawChart() {
+
+    var d = JSON.parse(document.getElementById("efficiency").value)
+
+    var data = new google.visualization.DataTable();
+    data.addColumn('string', 'State');
+    data.addColumn('number', 'Percentage');
+    for (let [key, value] of Object.entries(d)) {
+        data.addRow([key, value]);
+    }
+
+    // Optional; add a title and set the width and height of the chart
+    var options = {height: 500};
+
+    // Display the chart"
+    var chart = new google.visualization.PieChart(document.getElementById('piechart'));
+    chart.draw(data, options);
 }
 
-document.getElementById("start").value = now();
+// $(document).ready()
+// {
+//     document.getElementById('start').value = time();
+//     document.getElementById('end').value = time()
+// }
 
-document.getElementById("start").max = now();
+function time() {
+    let time = new Date();
+    time.setHours(time.getHours() + 2) // Adapt to GMT+2 time
+    return time.toISOString().slice(0, 16);
+}
 
-function print() {
-    console.log(document.getElementById('start').value);  
-    console.log(document.getElementById('end').value);  
-
-};
-
-// 2022-12-21T11%3A11
+function change() {
+    document.getElementById("id").value = document.getElementById("select").value
+    console.log(document.getElementById("id").value)
+}

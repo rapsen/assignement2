@@ -113,7 +113,6 @@ class Database():
         return self.__SELECT(element=f"id,time", condition=f"deviceId='{deviceId}' AND state='{state}'")
 
 
-
 class Model():
     def __init__(self):
         # Create the instance of the database
@@ -143,23 +142,16 @@ class Model():
         event = Event(data)
         model.db.addEvent(event)
 
-    def getRobEffBetTime(self, deviceId: str, start, end):
-        # sqlSt = f"SELECT state, time FROM robot WHERE deviceId = '{robotID}' and time between " \
-        #         f"'{start}' and '{end}' ORDER BY time ASC;"
-        # c.execute(sqlSt)
-        # list = c.fetchall()
-        pass
-
     def update(self, data: dict):
         # Update database
-        data['time'] = convert(data['time'])
+        data['time'] = iso2timestamp(data['time'])
         self.addEvent(Event(dict(data)))
 
     def getlaststate(self, deviceId: str):
         data = self.db.getLastStateByRobot(deviceId)[0]
         return data
 
-    def getRobEffBetTime(self, deviceId: str, start, end):
+    def getRobEffBetTime(self, deviceId: str, start: int, end: int):
         """ This function calculates KPIs and Mean Time -> returns dict"""
         list = self.db.getRobEventBetweenTime(deviceId, start, end)
         stateDict = {}
@@ -175,7 +167,7 @@ class Model():
             robot_state = start_dict["state"]
 
             # When failure is repaired
-            if start_dict["state"] == "DOWN" and end_dict["state"] != "DOWN":
+            if start_dict["state"] == DOWN and end_dict["state"] != DOWN:
                 up_time = end_time
             # When failure appear
             elif start_dict["state"] != "DOWN" and end_dict["state"] == "DOWN" and up_time != 0:
@@ -204,10 +196,10 @@ class Model():
             efficiency.update({rep: perc})
 
         total_fail_time = sum(infailure_times)
-        mean_time = total_fail_time / len(infailure_times)
-        efficiency.update({"MEAN": mean_time})
+        mean_time = total_fail_time / len(infailure_times) if len(infailure_times) !=0 else 0
+        #efficiency.update({"MEAN": mean_time})
         #print("States:", efficiency)
-        return efficiency
+        return efficiency, mean_time
 
     def getAlarmForState(self, deviceId: str, timeAlarm: int, state: str):
         robot = self.db.getAllEventByRobot(deviceId)
@@ -231,7 +223,10 @@ class Model():
 
         return EventsInAlarm
 
-def convert(time: str) -> int:
+
+def iso2timestamp(time: str) -> int:
+    if len(time) < 26:
+        time = time + ":00.0" # Add padings for the seconds
     return int(mktime(datetime.strptime(time[0:26], "%Y-%m-%dT%H:%M:%S.%f").timetuple()))
 
 
@@ -248,5 +243,5 @@ model = Model()
 # print(model.getEventById(3))
 # print(model.getAllDeviceId())
 # print(model.getLastEventByRobot("rob2"))
-# print(model.getRobEffBetTime("rob2", 1669476872, 1669811095))
+print(model.getRobEffBetTime("rob2", 1669476872, 1669811095))
 # print(model.getlaststate("rob1"))

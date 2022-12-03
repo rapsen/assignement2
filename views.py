@@ -28,10 +28,14 @@ def dashboard():
     return render_template("dashboard.html", id=id, state=state, time=time, status=status, robots=model.robots)
 
 
-@app.route("/historic")
+@app.route("/historic", methods=["GET", "POST"])
 def historic() -> str:
+    d = {}
+    if request.method == "POST":
+        d, mean = controller.efficiency(request.form)
+        print(d, mean)
     id, robots = controller.historic()
-    return render_template("historic.html", id=id, robots=model.robots)
+    return render_template("historic.html", id=id, robots=model.robots, efficiency=dumps(d))
 
 
 @app.route("/alarms")
