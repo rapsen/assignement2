@@ -29,41 +29,49 @@
                 </select>
             </h1>
             <form method="post">
-                <input type="text" name="id" id="id" value={{id}} hidden>
+                <input type="text" name="deviceId" id="id" value={{id}} hidden>
 
                 <label for="start">FROM</label>
-                <input type="datetime-local" class="datetime" name="start-date" id="start" required>
+                <input type="datetime-local" class="datetime" name="start" id="start" required>
 
                 <label for="end">UNTIL</label>
-                <input type="datetime-local" class="datetime" name="end-date" id="end" required>
+                <input type="datetime-local" class="datetime" name="end" id="end" required>
 
-                <input type="submit" value="Search Data"/>
+                <label for="end">FOR</label>
+                <select class="select" id="state" name="state">
+                    {% for s in states %}
+                    <option value="{{s}}">{{s}}</option>
+                    {% endfor %}
+                </select>
+
+                <input type="submit" class="select" value="Search Data"/>
             </form>
         </div>
+        {% if alarms %}
         <div class="card">
+            <h2>Total: {{ alarms | length }} alarms during this interval of time</div>
             <table>
                 <thead>
                     <tr>
-                        <th>Events</th>
-                        <th>Datetime</th>
+                        <th>State</th>
+                        <th>Start</th>
+                        <th>End</th>
+                        <th>Duration</th>
                     </tr>
                 </thead>
                 <tbody>
+                    {% for a in alarms %}
                     <tr>
-                        <td>Event 1</td>
-                        <td>Time 1</td>
-
+                        <td>{{ a.state }}</td>
+                        <td>{{ a.start }}</td>
+                        <td>{{ a.end }}</td>
+                        <td>{{ a.delta }}</td>
                     </tr>
-                    <tr>
-                        <td>Event 2</td>
-                        <td>Time 2</td>
-
-                    </tr>
+                    {% endfor %}
                 </tbody>
-
             </table>
-
         </div>
+        {% endif %}
     </div>
 
     </div>

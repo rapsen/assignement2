@@ -6,21 +6,19 @@ from config import *
 from database import database, Robot, Event
 
 
-class Alarm(Robot):
+class Alarm():
     def __init__(self, state, start: int, end: int) -> None:
         self.state = state
-        self.start = start
-        self.end = end
-        self.delta = self.end - self.start
-
-    def __repr__(self) -> str:
-        return f"Alarm: deviceId={self.deviceId} state={self.state} delta={self.delta}"
+        self.delta = end - start
+        self.start = datetime.fromtimestamp(start)
+        self.end = datetime.fromtimestamp(end)
 
 
 class Model():
     def __init__(self):
         # List to hold all the robots deviceId
         self.robots = [r.deviceId for r in self.getRobots()]
+        self.states = database.SELECT_DISTINCT_STATE()
 
     def getRobots(self) -> list[Robot]:
         return database.SELECT_ALL_ROBOT()
@@ -51,7 +49,7 @@ class Model():
             robot = Robot(data)
             database.ADD_ROBOT(robot)
 
-        #self.monitor(event)
+        # self.monitor(event)
         return event
 
     def monitor(event: Event):
@@ -117,8 +115,8 @@ class Model():
         total_fail_time = sum(infailure_times)
         mean_time = total_fail_time / \
             len(infailure_times) if len(infailure_times) != 0 else 0
-        #efficiency.update({"MEAN": mean_time})
-        #print("States:", efficiency)
+        # efficiency.update({"MEAN": mean_time})
+        # print("States:", efficiency)
         return efficiency, int(mean_time)
 
     def getAlarmForState(self, deviceId: str, timeAlarm: int, state: str):
@@ -130,11 +128,11 @@ class Model():
 
                 if (events[i].id == events_by_state['id']):
 
-                    #print("time state start ",robot[i-1].time," ",robot[i].time)
+                    # print("time state start ",robot[i-1].time," ",robot[i].time)
                     timesStartState = int(events[i - 1].time)
 
                     timeEndState = int(events[i + 1].time)
-                    #print("time state end   ",robot[i+1].time," ",robot[i].time)
+                    # print("time state end   ",robot[i+1].time," ",robot[i].time)
                     timeEvent = timeEndState - timesStartState
                     if (timeEvent > timeAlarm):
                         EventsInAlarm.append(events[i])
@@ -143,24 +141,27 @@ class Model():
 
         return EventsInAlarm
 
-    def getAlarms(self, deviceId: str, state: str, trigger: int=200) -> list[Alarm]:
-        events = database.SELECT_ALL_EVENT_BY_ROBOT(deviceId)
+    def getAlarms(self, deviceId: str, start: str, end: str, state: str, trigger: int = 200) -> list[Alarm]:
+        start, end = iso2timestamp(start), iso2timestamp(end)
+
+        events = database.SELECT_ALL_EVENT_BY_ROBOT_BETWEEN(
+            deviceId, start, end)
         alarms = []
-        time = events[0].time  # Modified when state is changed
-        alarm = None
 
-        for event in events:
-            if event.state == state:
-                delta = event.time - time  # Current time - previous time
-                if delta > trigger:
-                    alarm = Alarm(state, time, event.time)
-            else:
-                time = event.time
-                if alarm is not None:
-                    print(alarm)
-                    alarms.append(alarm)
-                    alarm = None
+        if events:
+            before = events[0]
+            alarm = None
 
+            for now in events:
+                if now.state == state:
+                    delta = now.time - before.time  # Current time - previous time
+                    if delta > trigger:
+                        alarm = Alarm(now.state, before.time, now.time)
+                else:
+                    before = now
+                    if alarm is not None:
+                        alarms.append(alarm)
+                        alarm = None
         return alarms
 
 

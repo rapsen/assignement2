@@ -115,13 +115,19 @@ class Database():
 
     def SELECT_ALL_EVENT_BETWEEN(self, start: int, end: int) -> list[Event]:
         return [Event(d) for d in self.__SELECT(EVENT, condition=f"time BETWEEN {start} AND {end}")]
-    
+
+    def SELECT_ALL_EVENT_BY_ROBOT_BETWEEN(self, deviceId: str, start: int, end: int, ) -> list[Event]:
+        return [Event(d) for d in self.__SELECT(EVENT, condition=f"deviceID=='{deviceId}' AND time BETWEEN {start} AND {end}")]
+
     def SELECT_ALL_EVENT_BY_ROBOT_AND_STATE(self, deviceId: str, state: str) -> list[Event]:
         return [Event(d) for d in self.__SELECT(EVENT, condition=f"deviceId=='{deviceId}' AND state=='{state}'")]
 
     def getAllDeviceId(self) -> list:
         return [d["deviceId"] for d in self.__SELECT(EVENT, element="DISTINCT deviceId")]
-
+    
+    def SELECT_DISTINCT_STATE(self) -> list:
+        return [d["state"] for d in  self.__SELECT(EVENT, element="DISTINCT state")]
+    
     def getLastEventByRobot(self, deviceId: str) -> Event:
         return self.SELECT_ALL_EVENT_BY_ROBOT(deviceId)[-1]
 
@@ -186,7 +192,7 @@ def test():
     print("     Robot and State:")
     print(f"        {EXECUTING}: {len(db.SELECT_ALL_EVENT_BY_ROBOT_AND_STATE('rob1', EXECUTING))}")
 
-
+   
 
     start, end = 1669476872, 1669477333
     print(f"     Between {datetime.fromtimestamp(start)} and {datetime.fromtimestamp(end)}: {len(db.SELECT_ALL_EVENT_BETWEEN(1669476872, 1669477333))}")

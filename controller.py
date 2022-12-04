@@ -17,8 +17,7 @@ mqtt = Mqtt()
 
 @socket.on('ask')
 def ask(deviceId):
-    robot = database.SELECT_ROBOT(deviceId)
-    socket.emit('update', data=robot.__dict__)
+    socket.emit('update', data=database.SELECT_ROBOT(deviceId).__dict__)
 
 
 @mqtt.on_message()
@@ -55,10 +54,18 @@ class Controller():
         return database.SELECT_ROBOT(self.id).__dict__ | {"robots": model.robots}
 
     def historic(self) -> dict:
-        percentages, mtbf = None, None
+        percentages, mtbf = {}, None
+
         if request.method == "POST":
             percentages, mtbf = controller.efficiency(request.form)
-        return {"id": self.id, "robots": model.robots, "efficiency": percentages, "mean": mtbf}
+
+        return {"id": self.id, "robots": model.robots, "efficiency": dumps(percentages), "mean": mtbf}
+
+    def alarms(self) -> dict:
+        alarms = {}
+        if request.method == "POST":
+            alarms = model.getAlarms(**request.form)
+        return {"id": self.id, "robots": model.robots, "states": ALARM_STATES, "alarms": alarms}
 
     def efficiency(self, form: dict) -> dict:
         d, mean = [], "No data"
@@ -68,9 +75,6 @@ class Controller():
         start, end = iso2timestamp(start), iso2timestamp(end)
         d, mean = model.getRobEffBetTime(self.id, start, end)
         return d, mean
-
-    def alarms(self) -> dict:
-        return {"id": self.id, "robots": model.robots}
 
 
 # Create istance of the controller
