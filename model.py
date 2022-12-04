@@ -3,34 +3,33 @@ from datetime import datetime, timedelta
 from time import mktime
 
 from config import *
-from database import Database, Robot, Event
+from database import database, Robot, Event
 
 
 class Model():
     def __init__(self):
         # Create the instance of the database
-        self.db = Database()
         self.robots = [r.deviceId for r in self.getRobots()]
 
     def getRobots(self) -> list:
-        return self.db.SELECT_ALL_ROBOT()
+        return database.SELECT_ALL_ROBOT()
 
     def addEvent(self, event: Event):
         print("New event in db: ", event)
-        self.db.addEvent(event)
+        database.addEvent(event)
 
     def last_event(self, id: str) -> Event:
-        a = self.db.getLastEventByRobot(id).__dict__
+        a = database.getLastEventByRobot(id).__dict__
         print(a)
         return a
 
     def handle(self, data: dict) -> Event:
         event = Event(data)
-        model.db.addEvent(event)
+        database.addEvent(event)
         if event.deviceId in self.robots:
-            model.db.updateRobot(event.robot())
+            database.updateRobot(event.robot())
         else:
-            model.db.addRobot(event.robot())
+            database.addRobot(event.robot())
         return event
 
     def update(self, data: dict):
@@ -39,12 +38,12 @@ class Model():
         self.addEvent(Event(dict(data)))
 
     def getlaststate(self, deviceId: str):
-        data = self.db.getLastStateByRobot(deviceId)[0]
+        data = database.getLastStateByRobot(deviceId)[0]
         return data
 
     def getRobEffBetTime(self, deviceId: str, start: int, end: int):
         """ This function calculates KPIs and Mean Time -> returns dict"""
-        list = self.db.getRobEventBetweenTime(deviceId, start, end)
+        list = database.getRobEventBetweenTime(deviceId, start, end)
         stateDict = {}
         efficiency = {}
         up_time = 0
@@ -94,10 +93,10 @@ class Model():
         return efficiency, mean_time
 
     def getAlarmForState(self, deviceId: str, timeAlarm: int, state: str):
-        robot = self.db.getAllEventByRobot(deviceId)
+        robot = database.getAllEventByRobot(deviceId)
         EventsInAlarm = []
 
-        for robotState in self.db.getStateById(deviceId, state):
+        for robotState in database.getStateById(deviceId, state):
             for i in range(0, len(robot) - 1):
 
                 if (robot[i].id == robotState['id']):

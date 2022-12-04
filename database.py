@@ -152,6 +152,10 @@ class Database():
         return self.__UPDATE(ROBOT, robot.__dict__, condition=f"{deviceId=}")
 
 
+# Create instance of the database
+database = Database()
+
+
 def test():
     """ Test database operation """
 

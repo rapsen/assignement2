@@ -6,6 +6,7 @@ from flask_socketio import SocketIO
 
 from config import *
 from model import model, iso2timestamp
+from database import database
 
 # Create the socket
 socket = SocketIO()
@@ -15,7 +16,7 @@ mqtt = Mqtt()
 
 @socket.on('ask')
 def ask(deviceId):
-    robot = model.db.SELECT_ROBOT(deviceId)
+    robot = database.SELECT_ROBOT(deviceId)
     socket.emit('update', data=robot.__dict__)
 
 
@@ -50,7 +51,7 @@ class Controller():
 
     def dashboard(self, deviceId) -> tuple:
         self.id = deviceId
-        robot = model.db.SELECT_ROBOT(self.id)
+        robot = database.SELECT_ROBOT(self.id)
         return robot.__dict__.values()
 
     def historic(self) -> tuple:
