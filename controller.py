@@ -23,7 +23,8 @@ def ask(deviceId):
 @mqtt.on_message()
 def handle_mqtt_message(client, userdata, message):
     data = loads(message.payload.decode())
-    controller.handle(data)
+    data['SN'] = data.pop("sequenceNumber") # Change key for sequnceNumber
+    controller.on_message(data)
 
 
 @mqtt.on_log()
@@ -40,12 +41,12 @@ class Controller():
             self.id = None
             log.warning("No robots in database")
         self.robot = model.getRobots()
+    
+    def robots(self):
+        return model.robots
 
-    def on_message(self, client, userdata, msg):
-        model.update(loads(msg.payload))
-
-    def handle(self, data: dict) -> None:
-        event = model.handle(data)
+    def on_message(self, data: dict) -> None:
+        event = model.on_message(data)
         log.info(f"MQTT {event.__dict__}")
         socket.emit('update', data=event.__dict__)
 
@@ -66,8 +67,6 @@ class Controller():
     def alarms(self) -> tuple:
         return self.id
 
-    def notify(self):
-        pass
 
 
 # Create istance of the controller

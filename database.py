@@ -38,10 +38,10 @@ class Robot:
 class Event(Robot):
     def __init__(self, data: dict):
         super().__init__(data)
-        self.sequenceNumber = int(data['sequenceNumber'])
+        self.SN = int(data['SN'])
 
     def __repr__(self) -> str:
-        return f"Event: deviceId={self.deviceId} state={self.state} time={self.time} sequenceNumber={self.sequenceNumber}"
+        return f"Event: deviceId={self.deviceId} state={self.state} time={self.time} SN={self.SN}"
 
     def robot(self) -> Robot:
         """ Return an Robot instance with event parameter"""
@@ -69,8 +69,7 @@ class Database():
         self.connexion.commit()
 
     def execute(self, request: str, commit: bool = False) -> list:
-        
-        # print(request) # For debug purposes
+
         try:
             self.c.execute(request)
         except Error as error:
@@ -81,19 +80,15 @@ class Database():
 
         return self.c.fetchall()
 
-    def __SELECT(self, table: str = EVENT, element: tuple = ('*'), condition: str = str(True)) -> list:
+    def __SELECT(self, table: str, element: tuple = ('*'), condition: str = str(True)) -> list:
         """ Private method to select element of the table with given condition """
 
-        request = f"SELECT {element} FROM {table} WHERE {condition}"
-
-        return self.execute(request)
+        return self.execute(f"SELECT {element} FROM {table} WHERE {condition}")
 
     def __INSERT(self, table: str, values: tuple) -> list:
         """ Private method to insert in the table the values """
 
-        request = f"INSERT INTO {table} {TABLES[table]} VALUES {values}"
-
-        self.execute(request, commit=True)
+        self.execute(f"INSERT INTO {table} {TABLES[table]} VALUES {values}", commit=True)
 
     def __UPDATE(self, table: str, values: list, condition: str = str(True)) -> list[dict]:
         """ Private method to update ALL element of the table with the new values """
@@ -103,44 +98,43 @@ class Database():
         for k, v in values.items():
             update += f"{k}='{v}', " if type(v) is str else f"{k}={v}, "
 
-        request = f"UPDATE {table} SET {update[:-2]} WHERE {condition}"
-
-        self.execute(request, commit=True)
+        self.execute(
+            f"UPDATE {table} SET {update[:-2]} WHERE {condition}", commit=True)
 
     def SELECT_ALL_ROBOTS(self) -> list[Robot]:
-        return [Robot(r) for r in self.__SELECT(table=ROBOT)]
+        return [Robot(r) for r in self.__SELECT(ROBOT)]
 
     def SELECT_ALL_EVENTS(self) -> list[Event]:
-        return [Event(d) for d in self.__SELECT()]
+        return [Event(d) for d in self.__SELECT(EVENT)]
 
     def SELECT_ALL_EVENT_BY_STATE(self, state: str) -> list[Event]:
-        return [Event(d) for d in self.__SELECT(condition=f"state == '{state}'")]
+        return [Event(d) for d in self.__SELECT(EVENT, condition=f"state == '{state}'")]
 
     def SELECT_ALL_EVENT_BY_ROBOT(self, deviceId: str) -> list[Event]:
-        return [Event(d) for d in self.__SELECT(condition=f"deviceId == '{deviceId}'")]
+        return [Event(d) for d in self.__SELECT(EVENT, condition=f"deviceId == '{deviceId}'")]
 
     def SELECT_ALL_EVENT_BETWEEN(self, start: int, end: int) -> list[Event]:
-        return [Event(d) for d in self.__SELECT(condition=f"time BETWEEN {start} AND {end}")]
+        return [Event(d) for d in self.__SELECT(EVENT, condition=f"time BETWEEN {start} AND {end}")]
 
     def getAllDeviceId(self) -> list:
-        return [d["deviceId"] for d in self.__SELECT(element="DISTINCT deviceId")]
+        return [d["deviceId"] for d in self.__SELECT(EVENT, element="DISTINCT deviceId")]
 
     def getLastEventByRobot(self, deviceId: str) -> Event:
         return self.SELECT_ALL_EVENT_BY_ROBOT(deviceId)[-1]
 
     def getLastStateByRobot(self, deviceId: str):
-        return self.__SELECT(element="deviceId, state, time", condition=f"deviceId = '{deviceId}' ORDER BY time DESC;")
+        return self.__SELECT(EVENT, element="deviceId, state, time", condition=f"deviceId = '{deviceId}' ORDER BY time DESC;")
 
     def ADD_EVENT(self, event: Event):
-        return self.__INSERT(EVENT, (event.deviceId, event.state, event.sequenceNumber, event.time))
+        return self.__INSERT(EVENT, (event.deviceId, event.state, event.SN, event.time))
 
     def getRobEventBetweenTime(self, deviceId: str, start: int, end: int):
-        return self.__SELECT(element="deviceId, state, time", condition=f"deviceId = '{deviceId}' and time between '{start}' and '{end}' ORDER BY time ASC;")
+        return self.__SELECT(EVENT, element="deviceId, state, time", condition=f"deviceId = '{deviceId}' and time between '{start}' and '{end}' ORDER BY time ASC;")
 
     def getStateById(self, deviceId: str, state: str) -> list:
-        return self.__SELECT(element=f"id,time", condition=f"deviceId='{deviceId}' AND state='{state}'")
+        return self.__SELECT(EVENT, element=f"id,time", condition=f"deviceId='{deviceId}' AND state='{state}'")
 
-    def SELECT_ALL_ROBOT(self)-> list[Robot]:
+    def SELECT_ALL_ROBOT(self) -> list[Robot]:
         return [Robot(d) for d in self.__SELECT(ROBOT)]
 
     def SELECT_ROBOT(self, deviceId: int) -> Robot:
@@ -167,7 +161,7 @@ def test():
          'time': int(datetime.now().timestamp())}
 
     e = Event({'id': 4190, 'deviceId': 'rob2', 'state': 'READY-PROCESSING-EXECUTING',
-               'sequenceNumber': 17730, 'time': int(datetime.now().timestamp())})
+               'SN': 17730, 'time': int(datetime.now().timestamp())})
 
     print("#####################  ROBOT  #########################")
     total_robot = db.SELECT_ALL_ROBOT()

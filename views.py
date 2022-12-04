@@ -23,37 +23,23 @@ app.config['MQTT_TLS_ENABLED'] = False
 @app.route("/dashboard", methods=["GET", "POST"])
 def dashboard():
     id = request.form['id'] if request.method == "POST" else controller.id
-    id, state, time, = controller.dashboard(id)
-    return render_template("dashboard.html", id=id, state=state, time=time, robots=model.robots)
+    id, state, time = controller.dashboard(id)
+    robots = controller.robots()
+    return render_template("dashboard.html", id=id, state=state, time=time, robots=robots)
 
 
 @app.route("/historic", methods=["GET", "POST"])
 def historic() -> str:
-    d = {}
-    if request.method == "POST":
-        d, mean = controller.efficiency(request.form)
-        print(d, mean)
+    d, mean = {}, None
+    if request.method == "POST": d, mean = controller.efficiency(request.form)
     id, robots = controller.historic()
-    return render_template("historic.html", id=id, robots=model.robots, efficiency=dumps(d))
+    return render_template("historic.html", id=id, robots=robots, efficiency=dumps(d), mean=mean)
 
 
 @app.route("/alarms")
 def alarms() -> str:
     id = controller.alarms()
     return render_template("alarms.html", id=id, robots=model.robots)
-
-
-@app.route('/thread/start', methods=['GET'])
-def startThreads():
-    print("Start threads attempt")
-    global threadStarted
-    if (threadStarted):
-        return "Threads have started already"
-    else:
-        threadStarted = True
-        x = Thread(target=c.suscribe())
-        x.start()
-        return "Starting threads"
 
 
 @app.route("/event", methods=['POST'])

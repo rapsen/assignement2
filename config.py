@@ -23,7 +23,7 @@ DATABASE_SCRIPT = "data/database.sql"
 EVENT = "Event"
 ROBOT = "Robot"
 TABLES = {
-    EVENT: ("deviceId", "state", "sequenceNumber", "time"),
+    EVENT: ("deviceId", "state", "SN", "time"),
     ROBOT: ("deviceId", "state", "time")
 }
 

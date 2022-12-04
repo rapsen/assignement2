@@ -11,7 +11,7 @@ class Model():
         # List to hold all the robots deviceId
         self.robots = [r.deviceId for r in self.getRobots()]
 
-    def getRobots(self) -> list:
+    def getRobots(self) -> list[Robot]:
         return database.SELECT_ALL_ROBOT()
 
     def addEvent(self, event: Event):
@@ -23,7 +23,7 @@ class Model():
         print(a)
         return a
 
-    def handle(self, data: dict) -> Event:
+    def on_message(self, data: dict) -> Event:
         event = Event(data)
         database.ADD_EVENT(event)
         if event.deviceId in self.robots:
@@ -34,7 +34,8 @@ class Model():
 
     def update(self, data: dict):
         # Update database
-        data['time'] = iso2timestamp(data['time'])
+        data['time'] = iso2timestamp(data['time']) # We store date as timestamp
+        print(data)
         self.addEvent(Event(dict(data)))
 
     def getlaststate(self, deviceId: str):
