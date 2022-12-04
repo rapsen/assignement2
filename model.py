@@ -8,7 +8,7 @@ from database import database, Robot, Event
 
 class Model():
     def __init__(self):
-        # Create the instance of the database
+        # List to hold all the robots deviceId
         self.robots = [r.deviceId for r in self.getRobots()]
 
     def getRobots(self) -> list:
@@ -16,7 +16,7 @@ class Model():
 
     def addEvent(self, event: Event):
         print("New event in db: ", event)
-        database.addEvent(event)
+        database.ADD_EVENT(event)
 
     def last_event(self, id: str) -> Event:
         a = database.getLastEventByRobot(id).__dict__
@@ -25,11 +25,11 @@ class Model():
 
     def handle(self, data: dict) -> Event:
         event = Event(data)
-        database.addEvent(event)
+        database.ADD_EVENT(event)
         if event.deviceId in self.robots:
-            database.updateRobot(event.robot())
+            database.UPDATE_ROBOT(event.robot())
         else:
-            database.addRobot(event.robot())
+            database.ADD_ROBOT(event.robot())
         return event
 
     def update(self, data: dict):
@@ -93,7 +93,7 @@ class Model():
         return efficiency, mean_time
 
     def getAlarmForState(self, deviceId: str, timeAlarm: int, state: str):
-        robot = database.getAllEventByRobot(deviceId)
+        robot = database.SELECT_ALL_EVENT_BY_ROBOT(deviceId)
         EventsInAlarm = []
 
         for robotState in database.getStateById(deviceId, state):

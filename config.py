@@ -1,22 +1,17 @@
-from logging.config import dictConfig
 import logging as log
+from colorlog import ColoredFormatter
 
-dictConfig({
-    'version': 1,
-    'formatters': {'default': {
-        'format': '[%(asctime)s] [%(module)s:%(lineno)s] %(message)s',
-        'datefmt': '%d/%m/%y %H:%M:%S'
-    }},
-    'handlers': {'wsgi': {
-        'class': 'logging.StreamHandler',
-        'stream': 'ext://flask.logging.wsgi_errors_stream',
-        'formatter': 'default',
-    }},
-    'root': {
-        'level': 'INFO',
-        'handlers': ['wsgi']
-    }
-})
+LOG_LEVEL = log.DEBUG
+LOGFORMAT = "[%(asctime)-s] [%(log_color)s%(levelname)-s%(reset)s] [%(module)s] %(log_color)s%(message)s%(reset)s"
+log.root.setLevel(LOG_LEVEL)
+formatter = ColoredFormatter(LOGFORMAT, "%Y-%m-%d %H:%M:%S")
+stream = log.StreamHandler()
+stream.setLevel(LOG_LEVEL)
+stream.setFormatter(formatter)
+log = log.getLogger('pythonConfig')
+log.setLevel(LOG_LEVEL)
+log.addHandler(stream)
+
 
 BROKER_HOSTNAME = "broker.mqttdashboard.com"
 BROKER_PORT = 1883
@@ -24,14 +19,14 @@ MQTT_TOPIC = "ii22/telemetry/#"
 
 DATABASE = "data/database.db"
 DATABASE_SCRIPT = "data/database.sql"
-# Description of the database 
+# Description of the database
 EVENT = "Event"
 ROBOT = "Robot"
 TABLES = {
     EVENT: ("deviceId", "state", "sequenceNumber", "time"),
     ROBOT: ("deviceId", "state", "time")
 }
-         
+
 # Possible States
 
 STARVED = "READY-IDLE-STARVED"

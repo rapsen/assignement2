@@ -1,4 +1,4 @@
-from sqlite3 import connect
+from sqlite3 import connect, Error
 from datetime import datetime, timedelta
 from time import mktime
 
@@ -69,14 +69,19 @@ class Database():
         self.connexion.commit()
 
     def execute(self, request: str, commit: bool = False) -> list:
-        self.c.execute(request)
+        
+        # print(request) # For debug purposes
+        try:
+            self.c.execute(request)
+        except Error as error:
+            log.error(f" SQLite({error.args}) Request: {request}")
 
         if commit:
             self.connexion.commit()
 
         return self.c.fetchall()
 
-    def __SELECT(self, table: str = EVENT, element: tuple = ('*'), condition: str = True) -> list:
+    def __SELECT(self, table: str = EVENT, element: tuple = ('*'), condition: str = str(True)) -> list:
         """ Private method to select element of the table with given condition """
 
         request = f"SELECT {element} FROM {table} WHERE {condition}"
@@ -102,34 +107,31 @@ class Database():
 
         self.execute(request, commit=True)
 
-    def getAllRobots(self) -> list[Robot]:
+    def SELECT_ALL_ROBOTS(self) -> list[Robot]:
         return [Robot(r) for r in self.__SELECT(table=ROBOT)]
 
-    def getAllEvents(self) -> Event:
+    def SELECT_ALL_EVENTS(self) -> list[Event]:
         return [Event(d) for d in self.__SELECT()]
 
-    def getAllEventByState(self, state: str) -> list[Event]:
+    def SELECT_ALL_EVENT_BY_STATE(self, state: str) -> list[Event]:
         return [Event(d) for d in self.__SELECT(condition=f"state == '{state}'")]
 
-    def getAllEventByRobot(self, deviceId: str) -> list[Event]:
+    def SELECT_ALL_EVENT_BY_ROBOT(self, deviceId: str) -> list[Event]:
         return [Event(d) for d in self.__SELECT(condition=f"deviceId == '{deviceId}'")]
 
-    def getAllEventByTime(self, start: int, end: int) -> list[Event]:
+    def SELECT_ALL_EVENT_BETWEEN(self, start: int, end: int) -> list[Event]:
         return [Event(d) for d in self.__SELECT(condition=f"time BETWEEN {start} AND {end}")]
-
-    def getEventById(self, id: int) -> Event:
-        return Event(self.__SELECT(condition=f"id == {id}")[0])
 
     def getAllDeviceId(self) -> list:
         return [d["deviceId"] for d in self.__SELECT(element="DISTINCT deviceId")]
 
     def getLastEventByRobot(self, deviceId: str) -> Event:
-        return self.getAllEventByRobot(deviceId)[-1]
+        return self.SELECT_ALL_EVENT_BY_ROBOT(deviceId)[-1]
 
     def getLastStateByRobot(self, deviceId: str):
         return self.__SELECT(element="deviceId, state, time", condition=f"deviceId = '{deviceId}' ORDER BY time DESC;")
 
-    def addEvent(self, event: Event):
+    def ADD_EVENT(self, event: Event):
         return self.__INSERT(EVENT, (event.deviceId, event.state, event.sequenceNumber, event.time))
 
     def getRobEventBetweenTime(self, deviceId: str, start: int, end: int):
@@ -138,18 +140,18 @@ class Database():
     def getStateById(self, deviceId: str, state: str) -> list:
         return self.__SELECT(element=f"id,time", condition=f"deviceId='{deviceId}' AND state='{state}'")
 
-    def SELECT_ALL_ROBOT(self):
+    def SELECT_ALL_ROBOT(self)-> list[Robot]:
         return [Robot(d) for d in self.__SELECT(ROBOT)]
 
-    def SELECT_ROBOT(self, deviceId: int):
+    def SELECT_ROBOT(self, deviceId: int) -> Robot:
         return Robot(self.__SELECT(ROBOT, condition=f"{deviceId=}")[0])
 
-    def addRobot(self, robot: Robot):
-        return self.__INSERT(ROBOT, (robot.deviceId, robot.state, robot.time))
+    def ADD_ROBOT(self, robot: Robot) -> None:
+        self.__INSERT(ROBOT, (robot.deviceId, robot.state, robot.time))
 
-    def updateRobot(self, robot: Robot):
+    def UPDATE_ROBOT(self, robot: Robot) -> None:
         deviceId = robot.deviceId
-        return self.__UPDATE(ROBOT, robot.__dict__, condition=f"{deviceId=}")
+        self.__UPDATE(ROBOT, robot.__dict__, condition=f"{deviceId=}")
 
 
 # Create instance of the database
@@ -175,18 +177,18 @@ def test():
         print(f"    {db.SELECT_ROBOT(robot.deviceId)}")
 
     print("#####################  EVENT  #########################")
-    print(f"Total Event: {len(db.getAllEvents())}")
+    print(f"Total Event: {len(db.SELECT_ALL_EVENTS())}")
     print("     State:")
     for state in STATES:
-        print(f"        {state}: {len(db.getAllEventByState(state))}")
+        print(f"        {state}: {len(db.SELECT_ALL_EVENT_BY_STATE(state))}")
     print("     Robot:")
     for robot in total_robot:
         print(
-            f"        {robot.deviceId}: {len(db.getAllEventByRobot(robot.deviceId))}")
+            f"        {robot.deviceId}: {len(db.SELECT_ALL_EVENT_BY_ROBOT(robot.deviceId))}")
 
     start, end = 1669476872, 1669477333
 
-    print(f"     Between {datetime.fromtimestamp(start)} and {datetime.fromtimestamp(end)}: {len(db.getAllEventByTime(1669476872, 1669477333))}")
+    print(f"     Between {datetime.fromtimestamp(start)} and {datetime.fromtimestamp(end)}: {len(db.SELECT_ALL_EVENT_BETWEEN(1669476872, 1669477333))}")
 
     # print(db.getAlarmForState('rob1',600,'DOWN'))
 
