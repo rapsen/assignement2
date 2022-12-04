@@ -1,5 +1,5 @@
 from sqlite3 import connect
-from datetime import datetime
+from datetime import datetime, timedelta
 from time import mktime
 
 from config import *
@@ -12,72 +12,98 @@ def dict_factory(cursor, row):
     return d
 
 
-class Event():
+class Robot:
     def __init__(self, data: dict):
-        self.id = None
         self.deviceId = data['deviceId']
         self.state = data['state']
         self.time = data['time']
-        self.sequenceNumber = int(data['sequenceNumber'])
-
         self.convert()
 
     def __repr__(self) -> str:
-        return f"Event: id={self.id} deviceId={self.deviceId} state={self.state} time={self.time} sequenceNumber={self.sequenceNumber}"
+        return f"Robot: deviceId={self.deviceId} state={self.state} time={self.time}"
 
     def convert(self):
-        if type(self.time) is str:
+        """ Convert the time:
+                * to an integer timestamp if time is a string
+                * to to an ISO string if time is an integer
+        """
+        if type(self.time) == str:
             self.time = int(mktime(datetime.strptime(
-                self.time[0:26], "%Y-%m-%dT%H:%M:%S.%f").timetuple()))
+                self.time.replace(" ", "T")[0:19], ISO_TIME).timetuple()))
+        # elif type(self.time) == int:
+        #     self.time = str(datetime.fromtimestamp(
+        #         self.time) + timedelta(hours=2))
 
 
-class Robot:
-    def __init__(self, event: Event):
-        self.id = event.deviceId
-        self.state = event.state
-        self.time = event.time
+class Event(Robot):
+    def __init__(self, data: dict):
+        super().__init__(data)
+        self.sequenceNumber = int(data['sequenceNumber'])
 
     def __repr__(self) -> str:
-        return f"Robot: id={self.id} state={self.state} time={self.time}"
+        return f"Event: deviceId={self.deviceId} state={self.state} time={self.time} sequenceNumber={self.sequenceNumber}"
+
+    def robot(self) -> Robot:
+        """ Return an Robot instance with event parameter"""
+        return Robot(self.__dict__)
 
 
 class Database():
     """ Class to handle database """
 
     def __init__(self):
-        self.database = DATABASE
         self.table = "Event"
-        self.request = ""
         self.c = None
 
-        self.connexion = connect(
-            self.database, check_same_thread=False)
+        self.connexion = connect(DATABASE, check_same_thread=False)
         self.connexion.row_factory = dict_factory
         self.c = self.connexion.cursor()
 
-    def execute(self) -> list:
-        self.c.execute(self.request)
+        self.create()
+
+    def create(self):
+        with open(DATABASE_SCRIPT, 'r') as db:
+            script = db.read()
+
+        self.c.executescript(script)
+        self.connexion.commit()
+
+    def execute(self, request: str, commit: bool = False) -> list:
+        self.c.execute(request)
+
+        if commit:
+            self.connexion.commit()
 
         return self.c.fetchall()
 
-    def __SELECT(self, table=EVENT, element="*", condition=True) -> list:
-        """ Private method to request element according to the condition """
+    def __SELECT(self, table: str = EVENT, element: tuple = ('*'), condition: str = True) -> list:
+        """ Private method to select element of the table with given condition """
 
-        self.request = f"SELECT {element} FROM {table} WHERE {condition}"
-        # print(self.request)
+        request = f"SELECT {element} FROM {table} WHERE {condition}"
 
-        return self.execute()
+        return self.execute(request)
 
-    def __INSERT(self, table, deviceId, state, sequenceNumber, time):
-        """ Private method to insert element """
+    def __INSERT(self, table: str, values: tuple) -> list:
+        """ Private method to insert in the table the values """
 
-        self.request = f"INSERT INTO {table} (deviceId, state, sequenceNumber, time) \
-                         VALUES ('{deviceId}', '{state}', {sequenceNumber}, {time})"
-        # print(self.request)
+        request = f"INSERT INTO {table} {TABLES[table]} VALUES {values}"
 
-        self.execute()
+        self.execute(request, commit=True)
 
-        self.connexion.commit()
+    def __UPDATE(self, table: str, values: list, condition: str = str(True)) -> list[dict]:
+        """ Private method to update ALL element of the table with the new values """
+
+        update = ""
+
+        for k, v in values.items():
+            update += f"{k}='{v}', " if type(v) is str else f"{k}={v}, "
+
+        request = f"UPDATE {table} SET {update[:-2]} WHERE {condition}"
+
+        self.execute(request, commit=True)
+
+    def getAllRobots(self) -> list[Robot]:
+        return [Robot(r) for r in self.__SELECT(table=ROBOT)]
 
     def getAllEvents(self) -> Event:
         return [Event(d) for d in self.__SELECT()]
@@ -95,7 +121,7 @@ class Database():
         return Event(self.__SELECT(condition=f"id == {id}")[0])
 
     def getAllDeviceId(self) -> list:
-        return self.__SELECT(element="DISTINCT deviceId")
+        return [d["deviceId"] for d in self.__SELECT(element="DISTINCT deviceId")]
 
     def getLastEventByRobot(self, deviceId: str) -> Event:
         return self.getAllEventByRobot(deviceId)[-1]
@@ -104,7 +130,7 @@ class Database():
         return self.__SELECT(element="deviceId, state, time", condition=f"deviceId = '{deviceId}' ORDER BY time DESC;")
 
     def addEvent(self, event: Event):
-        return self.__INSERT(EVENT, event.deviceId, event.state, event.sequenceNumber, event.time)
+        return self.__INSERT(EVENT, (event.deviceId, event.state, event.sequenceNumber, event.time))
 
     def getRobEventBetweenTime(self, deviceId: str, start: int, end: int):
         return self.__SELECT(element="deviceId, state, time", condition=f"deviceId = '{deviceId}' and time between '{start}' and '{end}' ORDER BY time ASC;")
@@ -112,22 +138,28 @@ class Database():
     def getStateById(self, deviceId: str, state: str) -> list:
         return self.__SELECT(element=f"id,time", condition=f"deviceId='{deviceId}' AND state='{state}'")
 
+    def SELECT_ALL_ROBOT(self):
+        return [Robot(d) for d in self.__SELECT(ROBOT)]
+
+    def SELECT_ROBOT(self, deviceId: int):
+        return Robot(self.__SELECT(ROBOT, condition=f"{deviceId=}")[0])
+
+    def addRobot(self, robot: Robot):
+        return self.__INSERT(ROBOT, (robot.deviceId, robot.state, robot.time))
+
+    def updateRobot(self, robot: Robot):
+        deviceId = robot.deviceId
+        return self.__UPDATE(ROBOT, robot.__dict__, condition=f"{deviceId=}")
+
 
 class Model():
     def __init__(self):
         # Create the instance of the database
         self.db = Database()
-        self.robots = self.getRobots()
+        self.robots = [r.deviceId for r in self.getRobots()]
 
-    def getRobots(self) -> dict:
-        robots = {}
-
-        for deviceId in self.db.getAllDeviceId():
-            Id = deviceId['deviceId']
-            lastEvent = self.db.getLastEventByRobot(Id)
-            robots[Id] = Robot(lastEvent)
-
-        return robots
+    def getRobots(self) -> list:
+        return self.db.SELECT_ALL_ROBOT()
 
     def addEvent(self, event: Event):
         print("New event in db: ", event)
@@ -138,9 +170,14 @@ class Model():
         print(a)
         return a
 
-    def handle(self, data: dict) -> None:
+    def handle(self, data: dict) -> Event:
         event = Event(data)
         model.db.addEvent(event)
+        if event.deviceId in self.robots:
+            model.db.updateRobot(event.robot())
+        else:
+            model.db.addRobot(event.robot())
+        return event
 
     def update(self, data: dict):
         # Update database
@@ -196,7 +233,8 @@ class Model():
             efficiency.update({rep: perc})
 
         total_fail_time = sum(infailure_times)
-        mean_time = total_fail_time / len(infailure_times) if len(infailure_times) !=0 else 0
+        mean_time = total_fail_time / \
+            len(infailure_times) if len(infailure_times) != 0 else 0
         #efficiency.update({"MEAN": mean_time})
         #print("States:", efficiency)
         return efficiency, mean_time
@@ -226,7 +264,7 @@ class Model():
 
 def iso2timestamp(time: str) -> int:
     if len(time) < 26:
-        time = time + ":00.0" # Add padings for the seconds
+        time = time + ":00.0"  # Add padings for the seconds
     return int(mktime(datetime.strptime(time[0:26], "%Y-%m-%dT%H:%M:%S.%f").timetuple()))
 
 
@@ -234,14 +272,27 @@ def iso2timestamp(time: str) -> int:
 model = Model()
 
 # Test get methods
-#print(model.getAlarmForState('rob1',600,'DOWN'))
+# print(model.getAlarmForState('rob1',600,'DOWN'))
 
 # print(model.db.getAllEvents())
-# print(model.getAllEventByState(DOWN))
-# print(model.getAllEventByRobot("rob1"))
-# print(model.getAllEventByTime(1669476872, 1669477333))
-# print(model.getEventById(3))
-# print(model.getAllDeviceId())
-# print(model.getLastEventByRobot("rob2"))
-print(model.getRobEffBetTime("rob2", 1669476872, 1669811095))
+# print(model.db.getAllEventByState(DOWN))
+# print(model.db.getAllEventByRobot("rob1"))
+# print(model.db.getAllEventByTime(1669476872, 1669477333))
+# print(model.db.getEventById(3))
+# print(model.db.getAllDeviceId())
+# print(model.db.getLastEventByRobot("rob2"))
+# print(model.getRobEffBetTime("rob2", 1669476872, 1669811095))
 # print(model.getlaststate("rob1"))
+
+e = Event({'id': 4190, 'deviceId': 'rob2', 'state': 'READY-PROCESSING-EXECUTING',
+          'sequenceNumber': 17730, 'time': int(datetime.now().timestamp())})
+
+# model.addEvent(e)
+
+r = {'deviceId': 'rob2', 'state': 'READY-PROCESSING-EXECUTING',
+     'time': int(datetime.now().timestamp())}
+
+# model.db.addRobot(Robot(r))
+# model.db.updateRobot(Robot(r))
+
+# print(model.db.SELECT_ROBOT("rob1"))

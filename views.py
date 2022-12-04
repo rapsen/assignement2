@@ -22,10 +22,9 @@ app.config['MQTT_TLS_ENABLED'] = False
 @app.route("/")
 @app.route("/dashboard", methods=["GET", "POST"])
 def dashboard():
-    id = request.form['id'] if request.method == "POST" else None
-    id, state, time, status = controller.dashboard(id)
-    print(id, state, time, status)
-    return render_template("dashboard.html", id=id, state=state, time=time, status=status, robots=model.robots)
+    id = request.form['id'] if request.method == "POST" else controller.id
+    id, state, time, = controller.dashboard(id)
+    return render_template("dashboard.html", id=id, state=state, time=time, robots=model.robots)
 
 
 @app.route("/historic", methods=["GET", "POST"])

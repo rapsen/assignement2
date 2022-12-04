@@ -14,52 +14,51 @@ mqtt = Mqtt()
 
 
 @socket.on('ask')
-def ask(robot):
-    data = model.last_event(robot)
-    data['time'] = str(datetime.fromtimestamp(
-        data['time']) + timedelta(hours=2))
-    socket.emit('update', data=data)
+def ask(deviceId):
+    robot = model.db.SELECT_ROBOT(deviceId)
+    socket.emit('update', data=robot.__dict__)
 
 
 @mqtt.on_message()
 def handle_mqtt_message(client, userdata, message):
     data = loads(message.payload.decode())
     controller.handle(data)
-    data['time'] = str(datetime.fromisoformat(
-        data['time'][:19]) + timedelta(hours=2))
-    socket.emit('update', data=data)
 
 
 @mqtt.on_log()
 def handle_logging(client, userdata, level, buf):
     if level == MQTT_LOG_ERR:
-        print('Error: {}'.format(buf))
+        log.error(f"MQTT Error: {buf}")
 
 
 class Controller():
     def __init__(self) -> None:
-        self.id = list(model.robots.keys())[0]
+        if len(model.robots):
+            self.id = model.robots[0]
+        else:
+            self.id = None
+            log.warning("No robots in database")
+        self.robot = model.getRobots()
 
     def on_message(self, client, userdata, msg):
         model.update(loads(msg.payload))
 
     def handle(self, data: dict) -> None:
-        model.handle(data)
+        event = model.handle(data)
+        log.info(f"MQTT {event.__dict__}")
+        socket.emit('update', data=event.__dict__)
 
-    def dashboard(self, id: str = None) -> tuple:
-        self.id = self.id if id is None else id
-        last_time = datetime.fromtimestamp(
-            model.robots[self.id].time) + timedelta(hours=2)
-        state = model.robots[self.id].state
-        return self.id, state, last_time, status(state)
+    def dashboard(self, deviceId) -> tuple:
+        self.id = deviceId
+        robot = model.db.SELECT_ROBOT(self.id)
+        return robot.__dict__.values()
 
     def historic(self) -> tuple:
-        return self.id, list(model.robots.values())
+        return self.id, model.robots
 
     def efficiency(self, form: dict) -> dict:
         id, start, end = form.values()
         self.id = id
-        print(self.id)
         start, end = iso2timestamp(start), iso2timestamp(end)
         return model.getRobEffBetTime(self.id, start, end)
 
@@ -68,17 +67,6 @@ class Controller():
 
     def notify(self):
         pass
-
-
-def status(state: str) -> str:
-    """ Return the status of the robot """
-    if state in [EXECUTING, ACTIVE]:
-        status = PROCESSING
-    elif state in [BLOCKED, STARVED]:
-        status = IDLE
-    else:
-        status = ERROR
-    return status
 
 
 # Create istance of the controller
