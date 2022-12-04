@@ -40,11 +40,15 @@
         <div class="rightcolumn">
             <div class="card">
                 <h2>State</h2>
-                <div id="state" style="padding-left: 10px">{{state}}</div>
+                <input type="text" class="datetime" name="state" placeholder="{{state}}" disabled>
             </div>
             <div class="card">
-                <h3>Last message received at:</h3>
-                <div id="time" style="padding-left: 10px">{{time}}</div>
+                <h2>Last message</h2>
+                <input id="time" type="datetime-local" step=1 class="datetime" value="{{time}}" disabled required>
+            </div>
+            <div class="card">
+                <h2>Alarms</h2>
+                <input id="time" type="datetime-local" step=1 class="datetime" value="{{time}}" disabled required>
             </div>
         </div>
     </div>
