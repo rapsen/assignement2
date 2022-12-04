@@ -82,16 +82,17 @@ class Model():
         total_gathered_time = round(sum(stateDict.values()), 1)
 
         for rep in stateDict:
-            time_state = stateDict[rep]
-            perc = round((time_state * 100) / total_gathered_time, 1)
-            efficiency.update({rep: perc})
+            if total_gathered_time:
+                time_state = stateDict[rep]
+                perc = round((time_state * 100) / total_gathered_time, 1)
+                efficiency.update({rep: perc})
 
         total_fail_time = sum(infailure_times)
         mean_time = total_fail_time / \
             len(infailure_times) if len(infailure_times) != 0 else 0
         #efficiency.update({"MEAN": mean_time})
         #print("States:", efficiency)
-        return efficiency, mean_time
+        return efficiency, int(mean_time)
 
     def getAlarmForState(self, deviceId: str, timeAlarm: int, state: str):
         robot = database.SELECT_ALL_EVENT_BY_ROBOT(deviceId)

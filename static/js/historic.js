@@ -8,19 +8,19 @@ function drawChart() {
 
     var d = JSON.parse(document.getElementById("efficiency").value)
 
+    console.log(Object.entries(d).length)
+
     var data = new google.visualization.DataTable();
     data.addColumn('string', 'State');
     data.addColumn('number', 'Percentage');
     for (let [key, value] of Object.entries(d)) {
         data.addRow([key, value]);
     }
-
-    // Optional; add a title and set the width and height of the chart
-    var options = {height: 500};
-
+    
     // Display the chart"
     var chart = new google.visualization.PieChart(document.getElementById('piechart'));
-    chart.draw(data, options);
+    chart.draw(data, {height: 400});
+
 }
 
 $(document).ready()

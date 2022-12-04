@@ -23,13 +23,13 @@
     <div class="row">
 
         <div class="card">
-            <h2>Historic
+            <h1>Historic
                 <select class="select" id="select" onChange="change()">
                     {% for r in robots %}
                     <option value={{r}} {% if r == id %}selected {% endif %}>{{r}}</option>
                     {% endfor %}
                 </select>
-            </h2>
+            </h1>
             <form method="post">
                 <input type="text" name="id" id="id" value={{id}} hidden>
 
@@ -44,12 +44,17 @@
             </form>
         </div>
         <div class="leftcolumn">
-            <div class="card">
+            <div id="result" class="card">
+                <h2>Efficiency</h2>
                 <data id="efficiency" value="{{efficiency}}"></data>
                 <div id="piechart"></div>
             </div>
         </div>
         <div class="rightcolumn">
+            <div class="card">
+                <h2>MTBF (in seconds)</h2>
+                <div id="mean">{{mean}}</div>
+            </div>
         </div>
 
         
@@ -85,7 +90,17 @@
                 console.log(dataObj);
                 $("#efficiency").html(data)
             });
-        }
+        }@app.route('/thread/start', methods=['GET'])
+        def startThreads():
+            print("Start threads attempt")
+            global threadStarted
+            if (threadStarted):
+                return "Threads have started already"
+            else:
+                threadStarted = True
+                x = Thread(target=c.suscribe())
+                x.start()
+                return "Starting threads"
 
         // //Web UI update
         //

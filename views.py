@@ -30,7 +30,7 @@ def dashboard():
 
 @app.route("/historic", methods=["GET", "POST"])
 def historic() -> str:
-    d, mean = {}, None
+    d, mean = [], "No data"
     if request.method == "POST": d, mean = controller.efficiency(request.form)
     id, robots = controller.historic()
     return render_template("historic.html", id=id, robots=robots, efficiency=dumps(d), mean=mean)
