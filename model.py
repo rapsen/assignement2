@@ -7,8 +7,8 @@ from database import database, Robot, Event
 
 
 class Alarm(Robot):
-    def __init__(self, event: Event, start: int, end: int) -> None:
-        super().__init__(event.__dict__)
+    def __init__(self, state, start: int, end: int) -> None:
+        self.state = state
         self.start = start
         self.end = end
         self.delta = self.end - self.start
@@ -40,18 +40,18 @@ class Model():
 
         if event.deviceId in self.robots:
             robot = database.SELECT_ROBOT(event.deviceId)
-            if robot.state == event.state:
-                robot.trigger = int(event.time - robot.time)
+            # if robot.state == event.state:
+            #     robot.trigger = int(event.time - robot.time)
             database.UPDATE_ROBOT(robot)
 
-            if robot.trigger > ALARM_TRIGGERS[robot.state]:
-                alarm = Alarm()
-                database
+            # if robot.trigger > ALARM_TRIGGERS[robot.state]:
+            #     alarm = Alarm()
+            #     database
         else:
             robot = Robot(data)
             database.ADD_ROBOT(robot)
 
-        self.monitor(event)
+        #self.monitor(event)
         return event
 
     def monitor(event: Event):
@@ -153,7 +153,7 @@ class Model():
             if event.state == state:
                 delta = event.time - time  # Current time - previous time
                 if delta > trigger:
-                    alarm = Alarm(event, time, event.time)
+                    alarm = Alarm(state, time, event.time)
             else:
                 time = event.time
                 if alarm is not None:

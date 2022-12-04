@@ -1,6 +1,7 @@
 from datetime import datetime, timedelta
 from json import loads, dumps
 
+from flask import request
 from flask_mqtt import MQTT_LOG_ERR, Mqtt
 from flask_socketio import SocketIO
 
@@ -23,7 +24,7 @@ def ask(deviceId):
 @mqtt.on_message()
 def handle_mqtt_message(client, userdata, message):
     data = loads(message.payload.decode())
-    data['SN'] = data.pop("sequenceNumber") # Change key for sequnceNumber
+    data['SN'] = data.pop("sequenceNumber")  # Change key for sequnceNumber
     controller.on_message(data)
 
 
@@ -41,32 +42,35 @@ class Controller():
             self.id = None
             log.warning("No robots in database")
         self.robot = model.getRobots()
-    
-    def robots(self):
-        return model.robots
 
     def on_message(self, data: dict) -> None:
         event = model.on_message(data)
         log.info(f"MQTT {event.__dict__}")
         socket.emit('update', data=event.__dict__)
 
-    def dashboard(self, deviceId) -> tuple:
-        self.id = deviceId
-        robot = database.SELECT_ROBOT(self.id)
-        return robot.__dict__.values()
+    def dashboard(self) -> dict:
+        if request.method == "POST":
+            self.id = request.form['id']
 
-    def historic(self) -> tuple:
-        return self.id, model.robots
+        return database.SELECT_ROBOT(self.id).__dict__ | {"robots": model.robots}
+
+    def historic(self) -> dict:
+        percentages, mtbf = None, None
+        if request.method == "POST":
+            percentages, mtbf = controller.efficiency(request.form)
+        return {"id": self.id, "robots": model.robots, "efficiency": percentages, "mean": mtbf}
 
     def efficiency(self, form: dict) -> dict:
+        d, mean = [], "No data"
+
         id, start, end = form.values()
         self.id = id
         start, end = iso2timestamp(start), iso2timestamp(end)
-        return model.getRobEffBetTime(self.id, start, end)
+        d, mean = model.getRobEffBetTime(self.id, start, end)
+        return d, mean
 
-    def alarms(self) -> tuple:
-        return self.id
-
+    def alarms(self) -> dict:
+        return {"id": self.id, "robots": model.robots}
 
 
 # Create istance of the controller
