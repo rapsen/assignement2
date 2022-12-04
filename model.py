@@ -6,6 +6,17 @@ from config import *
 from database import database, Robot, Event
 
 
+class Alarm(Robot):
+    def __init__(self, event: Event, start: int, end: int) -> None:
+        super().__init__(event.__dict__)
+        self.start = start
+        self.end = end
+        self.delta = self.end - self.start
+
+    def __repr__(self) -> str:
+        return f"Alarm: deviceId={self.deviceId} state={self.state} delta={self.delta}"
+
+
 class Model():
     def __init__(self):
         # List to hold all the robots deviceId
@@ -26,15 +37,31 @@ class Model():
     def on_message(self, data: dict) -> Event:
         event = Event(data)
         database.ADD_EVENT(event)
+
         if event.deviceId in self.robots:
-            database.UPDATE_ROBOT(event.robot())
+            robot = database.SELECT_ROBOT(event.deviceId)
+            if robot.state == event.state:
+                robot.trigger = int(event.time - robot.time)
+            database.UPDATE_ROBOT(robot)
+
+            if robot.trigger > ALARM_TRIGGERS[robot.state]:
+                alarm = Alarm()
+                database
         else:
-            database.ADD_ROBOT(event.robot())
+            robot = Robot(data)
+            database.ADD_ROBOT(robot)
+
+        self.monitor(event)
         return event
+
+    def monitor(event: Event):
+        robot = database.SELECT_ROBOT(event.deviceId)
+        robot
 
     def update(self, data: dict):
         # Update database
-        data['time'] = iso2timestamp(data['time']) # We store date as timestamp
+        # We store date as timestamp
+        data['time'] = iso2timestamp(data['time'])
         print(data)
         self.addEvent(Event(dict(data)))
 
@@ -95,26 +122,46 @@ class Model():
         return efficiency, int(mean_time)
 
     def getAlarmForState(self, deviceId: str, timeAlarm: int, state: str):
-        robot = database.SELECT_ALL_EVENT_BY_ROBOT(deviceId)
+        events = database.SELECT_ALL_EVENT_BY_ROBOT(deviceId)
         EventsInAlarm = []
 
-        for robotState in database.getStateById(deviceId, state):
-            for i in range(0, len(robot) - 1):
+        for events_by_state in database.getStateById(deviceId, state):
+            for i in range(0, len(events) - 1):
 
-                if (robot[i].id == robotState['id']):
+                if (events[i].id == events_by_state['id']):
 
                     #print("time state start ",robot[i-1].time," ",robot[i].time)
-                    timesStartState = int(robot[i - 1].time)
+                    timesStartState = int(events[i - 1].time)
 
-                    timeEndState = int(robot[i + 1].time)
+                    timeEndState = int(events[i + 1].time)
                     #print("time state end   ",robot[i+1].time," ",robot[i].time)
                     timeEvent = timeEndState - timesStartState
                     if (timeEvent > timeAlarm):
-                        EventsInAlarm.append(robot[i])
+                        EventsInAlarm.append(events[i])
                         print(
-                            f"/!\ Warning:in event {robot[i].id} device {deviceId} is {timeEvent} seconds in {state} state")
+                            f"/!\ Warning:in event {events[i].id} device {deviceId} is {timeEvent} seconds in {state} state")
 
         return EventsInAlarm
+
+    def getAlarms(self, deviceId: str, state: str, trigger: int=200) -> list[Alarm]:
+        events = database.SELECT_ALL_EVENT_BY_ROBOT(deviceId)
+        alarms = []
+        time = events[0].time  # Modified when state is changed
+        alarm = None
+
+        for event in events:
+            if event.state == state:
+                delta = event.time - time  # Current time - previous time
+                if delta > trigger:
+                    alarm = Alarm(event, time, event.time)
+            else:
+                time = event.time
+                if alarm is not None:
+                    print(alarm)
+                    alarms.append(alarm)
+                    alarm = None
+
+        return alarms
 
 
 def iso2timestamp(time: str) -> int:
@@ -125,3 +172,8 @@ def iso2timestamp(time: str) -> int:
 
 # Create instance of the model
 model = Model()
+
+if __name__ == "__main__":
+    import sys
+    trigger = int(sys.argv[1])
+    print(len(model.getAlarms("rob1", DOWN, trigger)))

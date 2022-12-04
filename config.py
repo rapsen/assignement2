@@ -17,18 +17,17 @@ BROKER_HOSTNAME = "broker.mqttdashboard.com"
 BROKER_PORT = 1883
 MQTT_TOPIC = "ii22/telemetry/#"
 
-# Alarms trigers
-ALARM_DOWN = 100
-ALARM_IDLE = 1000
 
 DATABASE = "data/database.db"
 DATABASE_SCRIPT = "data/database.sql"
 # Description of the database
 EVENT = "Event"
 ROBOT = "Robot"
+ALARM_TRIGGERS = 'Alarms'
 TABLES = {
     EVENT: ("deviceId", "state", "SN", "time"),
-    ROBOT: ("deviceId", "state", "time")
+    ROBOT: ("deviceId", "state", "time", "trigger"),
+    ALARM_TRIGGERS: ("deviceId", "state", "delta", "time")
 }
 
 # Possible States
@@ -42,5 +41,13 @@ SETUP = "SETUP"
 DOWN = "DOWN"
 OFF = "OFF"
 STATES = [STARVED, BLOCKED, EXECUTING, PROCESSING, ACTIVE, SETUP, DOWN, OFF]
+
+
+ALARM_TRIGGERS = {
+    DOWN: 100,
+    STARVED: 1000,
+    BLOCKED: 1000
+}
+
 
 ISO_TIME = "%Y-%m-%dT%H:%M:%S"
