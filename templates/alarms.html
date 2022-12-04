@@ -21,26 +21,23 @@
     </div>
     <div class="row">
         <div class="card">
-            <h2>Alarms
+            <h1>Alarms
                 <select class="select" id="select" onChange="ask(this)">
                     {% for r in robots %}
                     <option value={{r}}>{{r}}</option>
                     {% endfor %}
                 </select>
-            </h2>
-            <form submit="print()">
+            </h1>
+            <form method="post">
+                <input type="text" name="id" id="id" value={{id}} hidden>
+
                 <label for="start">FROM</label>
-
-                <input type="date" class="datetime" id="start-date">
-                <input type="time" class="datetime" id="start-time">
-
+                <input type="datetime-local" class="datetime" name="start-date" id="start" required>
 
                 <label for="end">UNTIL</label>
+                <input type="datetime-local" class="datetime" name="end-date" id="end" required>
 
-                <input type="date" class="datetime" id="end-date">
-                <input type="time" class="datetime" id="end-time">                
-                <input type="submit" value="Search Data" />
-
+                <input type="submit" value="Search Data"/>
             </form>
         </div>
         <div class="card">
@@ -70,12 +67,7 @@
     </div>
 
     </div>
-    <script>
-
-
-
-
-    </script>
+    <script src="/static/js/alarms.js"></script>
 </body>
 
 </html>

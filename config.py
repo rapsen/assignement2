@@ -17,6 +17,10 @@ BROKER_HOSTNAME = "broker.mqttdashboard.com"
 BROKER_PORT = 1883
 MQTT_TOPIC = "ii22/telemetry/#"
 
+# Alarms trigers
+ALARM_DOWN = 100
+ALARM_IDLE = 1000
+
 DATABASE = "data/database.db"
 DATABASE_SCRIPT = "data/database.sql"
 # Description of the database

@@ -13,7 +13,7 @@ $(document).ready()
 {
     var t = document.getElementById('time').value
     console.log(t)
-    document.getElementById('time').value = time(t);
+    document.getElementById('time').valueAsDate = time(t);
 }
 
 function time(ts) {
