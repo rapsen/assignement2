@@ -6,10 +6,9 @@ from views import app
 mqtt.init_app(app)
 socket.init_app(app)
 
-
-print(f"Suscribed to {MQTT_TOPIC} from {BROKER_HOSTNAME}:{BROKER_PORT}")
-
 mqtt.subscribe(MQTT_TOPIC)
+app.logger.info(
+    f"MQTT Suscribed to {MQTT_TOPIC} from {BROKER_HOSTNAME}:{BROKER_PORT}")
 
 if __name__ == "__main__":
 
