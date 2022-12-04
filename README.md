@@ -54,7 +54,7 @@ _Below is the instruction to create the environment and run locally the web appl
 - [x] Create an HTTP endpoint and retrieve some mocked data
 - [x] Retrieve the DB data from the HTTP endpoint
 - [x] Integration
-- [ ] Business logic
+- [x] Business logic
 - [x] Deploy the solution with Azure
 
 ## Requirements
@@ -65,11 +65,11 @@ _Below is the instruction to create the environment and run locally the web appl
     - [x] Alarms
   - [x] Real time Dashbaord
      - [x] Latest state of given robot
-  - [ ] Hictorical Data
+  - [x] Hictorical Data
     - [x] User filters by robotId and time window
-    - [ ] Show two KPIs for this filtered data
+    - [x] Show two KPIs for this filtered data
       - [x] Percentage of time in each state
-      - [ ] MTBF: Mean Time between Failures
+      - [x] MTBF: Mean Time between Failures
   - [ ] Alarms
     - [ ] Log if a robot has been more than X amount of time in IDLE state
     - [ ] Log if a robot has been more than Y amount of time in DOWN state
