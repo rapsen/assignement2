@@ -1,21 +1,21 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <link rel="shortcut icon" href="/static/icons/favicon.ico">
+    <link rel="shortcut icon" href="/static/icons/favicon.ico"/>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.js"></script>
     <script src="https://cdn.socket.io/4.2.0/socket.io.js"></script>
 
-    <link rel="stylesheet" href="/static/css/stylesheet.css">
+    <link rel="stylesheet" href="/static/css/stylesheet.css"/>
 
     <title>Dashboard</title>
 </head>
 <body>
     <div class="header"></div>
     <div class="topnav">
-        <a href="/dashboard">Dashboard</a>
-        <a href="/historic">Historic</a>
-        <a href="/alarms">Alarms</a>
+        <a href="/dashboard/{{id}}">Dashboard</a>
+        <a href="/historic/{{id}}">Historic</a>
+        <a href="/alarms/{{id}}">Alarms</a>
     </div>
     <div class="row">
         <div class="leftcolumn">
@@ -23,15 +23,15 @@
                 <h1>Dashboard
                     <select class="select" id="select" onChange="location = this.value">
                         {% for r in robots %}
-                        <option value="/dashboard/{{r}}" {% if r == robot.deviceId %}selected{% endif %}>{{r}}</option>
+                        <option value="/dashboard/{{ r }}" {% if r == id %}selected{% endif %}>{{ r }}</option>
                         {% endfor %}
                     </select>
-                    <data id="id" value={{ robot.deviceId }} hidden></data>
+                    <data id="id" value={{ id }} hidden></data>
                 </h1>
             </div>
             <div class="card">
                 <h2>Status</h2>
-                <img id="status" class="center" src="/static/icons/{{robot.state}}.png">
+                <img id="status" alt="" height="" width="" class="center" src="/static/icons/{{ robot.state }}.png"/>
             </div>
 
         </div>
