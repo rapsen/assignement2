@@ -37,7 +37,7 @@ class Model():
         database.ADD_EVENT(event)
 
         if event.deviceId in self.robots:
-            robot = database.SELECT_ROBOT(event.deviceId)
+            robot = Robot(data)
             # if robot.state == event.state:
             #     robot.trigger = int(event.time - robot.time)
             database.UPDATE_ROBOT(robot)
@@ -68,7 +68,7 @@ class Model():
         return data
 
     def getRobEffBetTime(self, deviceId: str, start: int, end: int):
-        """ This function calculates KPIs and Mean Time -> returns dict"""
+        """ This function calculates KPIs and Mean Time -> returns dict"""        
         list = database.getRobEventBetweenTime(deviceId, start, end)
         stateDict = {}
         efficiency = {}
@@ -144,8 +144,7 @@ class Model():
     def getAlarms(self, deviceId: str, start: str, end: str, state: str, trigger: int = 200) -> list[Alarm]:
         start, end = iso2timestamp(start), iso2timestamp(end)
 
-        events = database.SELECT_ALL_EVENT_BY_ROBOT_BETWEEN(
-            deviceId, start, end)
+        events = database.SELECT_ALL_EVENT_BY_ROBOT_BETWEEN(deviceId, start, end)
         alarms = []
 
         if events:

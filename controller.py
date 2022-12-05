@@ -15,11 +15,6 @@ socket = SocketIO()
 mqtt = Mqtt()
 
 
-@socket.on('ask')
-def ask(deviceId):
-    socket.emit('update', data=database.SELECT_ROBOT(deviceId).__dict__)
-
-
 @mqtt.on_message()
 def handle_mqtt_message(client, userdata, message):
     data = loads(message.payload.decode())
@@ -47,21 +42,23 @@ class Controller():
         log.info(f"MQTT {event.__dict__}")
         socket.emit('update', data=event.__dict__)
 
-    def dashboard(self) -> dict:
-        if request.method == "POST":
-            self.id = request.form['id']
+    def dashboard(self, id=None) -> dict:
+        if id is not None:
+            self.id = id
 
-        return database.SELECT_ROBOT(self.id).__dict__ | {"robots": model.robots}
+        robot = database.SELECT_ROBOT(self.id)
 
-    def historic(self) -> dict:
+        return {"robot": robot, "robots": model.robots}
+
+    def historic(self, id=None) -> dict:
         percentages, mtbf = {}, None
 
         if request.method == "POST":
             percentages, mtbf = controller.efficiency(request.form)
 
-        return {"id": self.id, "robots": model.robots, "efficiency": dumps(percentages), "mean": mtbf}
+        return {"id": self.id, "robots": model.robots, "percentage": dumps(percentages), "mean": mtbf}
 
-    def alarms(self) -> dict:
+    def alarms(self, id=None) -> dict:
         alarms = {}
         if request.method == "POST":
             alarms = model.getAlarms(**request.form)

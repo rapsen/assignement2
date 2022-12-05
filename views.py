@@ -2,7 +2,7 @@ import json
 from json import loads, dumps
 from flask import Flask, render_template, redirect, request
 import paho.mqtt.publish as publish
-from threading import Thread
+from datetime import datetime
 
 from controller import controller as c
 from model import model as m
@@ -25,13 +25,28 @@ def dashboard():
     return render_template("dashboard.html", **controller.dashboard())
 
 
+@app.route("/dashboard/<string:id>")
+def dashboard_(id):
+    return render_template("dashboard.html", **controller.dashboard(id))
+
+
 @app.route("/historic", methods=["GET", "POST"])
-def historic() -> str:
+def historic_() -> str:
+    return render_template("historic.html", **controller.historic())
+
+
+@app.route("/historic/<string:id>", methods=["GET", "POST"])
+def historic(id) -> str:
     return render_template("historic.html", **controller.historic())
 
 
 @app.route("/alarms", methods=["GET", "POST"])
-def alarms() -> str:
+def alarms_() -> str:
+    return render_template("alarms.html", **controller.alarms())
+
+
+@app.route("/alarms/<string:id>", methods=["GET", "POST"])
+def alarms(id) -> str:
     return render_template("alarms.html", **controller.alarms())
 
 
@@ -62,3 +77,8 @@ def realtimestate():
     inputdata = m.getlaststate("rob2")
     data = json.dumps(inputdata)
     return data
+
+
+@app.template_filter()
+def timestamp2date(value, format="%d/%m/%y, %H:%M:%S"):
+    return datetime.fromtimestamp(value+60*60*2).strftime(format) # Convert to Helsinki timezone

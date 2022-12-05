@@ -4,9 +4,6 @@
     <link rel="shortcut icon" href="/static/icons/favicon.ico">
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.js"></script>
-    <script src="https://cdn.anychart.com/releases/v8/js/anychart-core.min.js"></script>
-    <script src="https://cdn.anychart.com/releases/v8/js/anychart-pie.min.js"></script>
-
     <script src="https://cdn.socket.io/4.2.0/socket.io.js"></script>
 
     <link rel="stylesheet" href="/static/css/stylesheet.css">
@@ -23,32 +20,32 @@
     <div class="row">
         <div class="leftcolumn">
             <div class="card">
-                <h2>Dashboard
-                    <select class="select" id="select" onChange="ask(this)">
+                <h1>Dashboard
+                    <select class="select" id="select" onChange="location = this.value">
                         {% for r in robots %}
-                        <option value={{r}}>{{r}}</option>
+                        <option value="/dashboard/{{r}}" {% if r == robot.deviceId %}selected{% endif %}>{{r}}</option>
                         {% endfor %}
                     </select>
-                </h2>
+                    <data id="id" value={{ robot.deviceId }} hidden></data>
+                </h1>
             </div>
             <div class="card">
                 <h2>Status</h2>
-                <img id="status" class="center" src="/static/icons/{{state}}.png">
+                <img id="status" class="center" src="/static/icons/{{robot.state}}.png">
             </div>
 
         </div>
         <div class="rightcolumn">
             <div class="card">
                 <h2>State</h2>
-                <input type="text" class="datetime" name="state" placeholder="{{state}}" disabled>
+                    <p id="state">{{robot.state}}</p>
             </div>
             <div class="card">
                 <h2>Last message</h2>
-                <input id="time" type="datetime-local" step=1 class="datetime" value="{{time}}" disabled required>
+                <time id="time">{{robot.time|timestamp2date}}</time>
             </div>
             <div class="card">
                 <h2>Alarms</h2>
-                <input id="time" type="datetime-local" step=1 class="datetime" value="{{time}}" disabled required>
             </div>
         </div>
     </div>
