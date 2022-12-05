@@ -1,11 +1,9 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <link rel="shortcut icon" href="static/icons/favicon.ico">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.js"></script>
-    <script src="https://cdn.anychart.com/releases/v8/js/anychart-core.min.js"></script>
-    <script src="https://cdn.anychart.com/releases/v8/js/anychart-pie.min.js"></script>
+    <link rel="shortcut icon" href="/static/icons/favicon.ico">
 
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.js"></script>
     <script src="https://cdn.socket.io/4.2.0/socket.io.js"></script>
     <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
 
@@ -16,43 +14,44 @@
 <body>
     <div class="header"></div>
     <div class="topnav">
-        <a href="/dashboard">Dashboard</a>
-        <a href="/historic">Historic</a>
-        <a href="/alarms">Alarms</a>
+        <a href="/dashboard/{{id}}">Dashboard</a>
+        <a href="/historic/{{id}}">Historic</a>
+        <a href="/alarms/{{id}}">Alarms</a>
     </div>
     <div class="row">
 
         <div class="card">
             <h1>Historic
-                <select class="select" id="select" onChange="change()">
+                <select class="select" id="select" onChange="location = this.value">
                     {% for r in robots %}
-                    <option value={{r}} {% if r == id %}selected {% endif %}>{{r}}</option>
+                    <option value="/historic/{{r}}" {% if r == id %}selected{% endif %}>{{r}}</option>
                     {% endfor %}
                 </select>
+                <data id="id" value={{ id }}></data>
             </h1>
             <form method="post">
                 <input type="text" name="id" id="id" value={{id}} hidden>
 
-                <label for="start">FROM</label>
-                <input type="datetime-local" class="datetime" name="start-date" id="start" required>
+                <label for="start">From</label>
+                <input type="datetime-local" class="datetime" name="start-date" id="start" value="{{ start }}" required>
 
                 <label for="end">UNTIL</label>
-                <input type="datetime-local" class="datetime" name="end-date" id="end" required>
+                <input type="datetime-local" class="datetime" name="end-date" id="end" value="{{ end }}" required>
 
-                <input type="submit" value="Search Data"/>
+                <input type="submit" class="select" value="Search Data"/>
             </form>
         </div>
         <div class="leftcolumn">
             <div id="result" class="card">
                 <h2>Efficiency</h2>
-                <data id="efficiency" value="{{efficiency}}"></data>
+                <data id="percentage" value="{{ percentage }}"></data>
                 <div id="piechart"></div>
             </div>
         </div>
         <div class="rightcolumn">
             <div class="card">
-                <h2>MTBF (in seconds)</h2>
-                <div id="mean">{{mean}}</div>
+                <h2>MTBF</h2>
+                <div id="mtbf">{{ mtbf }} seconds</div>
             </div>
         </div>
 

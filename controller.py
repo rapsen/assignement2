@@ -48,15 +48,14 @@ class Controller():
 
         robot = database.SELECT_ROBOT(self.id)
 
-        return {"robot": robot, "robots": model.robots}
+        return {"id": self.id, "robot": robot, "robots": model.robots}
 
     def historic(self, id=None) -> dict:
-        percentages, mtbf = {}, None
+        result = {}
+        if id is not None:
+            self.id = id
 
-        if request.method == "POST":
-            percentages, mtbf = controller.efficiency(request.form)
-
-        return {"id": self.id, "robots": model.robots, "percentage": dumps(percentages), "mean": mtbf}
+        return {"id": self.id, "robots": model.robots} | self.efficiency(request.form)
 
     def alarms(self, id=None) -> dict:
         alarms = {}
@@ -65,14 +64,14 @@ class Controller():
         return {"id": self.id, "robots": model.robots, "states": ALARM_STATES, "alarms": alarms}
 
     def efficiency(self, form: dict) -> dict:
-        d, mean = [], "No data"
+        d, mtbf = [], "No data"
+        start, end = [datetime.now().strftime("%Y-%m-%dT%H:%M")]*2
+        if request.method == "POST":
+            self.id, start, end = form.values()
 
-        id, start, end = form.values()
-        self.id = id
-        start, end = iso2timestamp(start), iso2timestamp(end)
-        d, mean = model.getRobEffBetTime(self.id, start, end)
-        return d, mean
+        d, mtbf = model.getRobEffBetTime(self.id, iso2timestamp(start), iso2timestamp(end))
+        return {"percentage": dumps(d), "mtbf": mtbf, "start": start, "end": end}
 
 
-# Create istance of the controller
+# Create istance of the controllers
 controller = Controller()
