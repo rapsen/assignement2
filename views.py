@@ -20,34 +20,22 @@ app.config['MQTT_TLS_ENABLED'] = False
 
 
 @app.route("/")
-@app.route("/dashboard", methods=["GET", "POST"])
-def dashboard():
-    return render_template("dashboard.html", **controller.dashboard())
-
-
+@app.route("/dashboard")
 @app.route("/dashboard/<string:id>")
-def dashboard_(id):
+def dashboard_(id: str = controller.id):
     return render_template("dashboard.html", **controller.dashboard(id))
 
 
 @app.route("/historic", methods=["GET", "POST"])
-def historic_() -> str:
-    return render_template("historic.html", **controller.historic())
-
-
 @app.route("/historic/<string:id>", methods=["GET", "POST"])
-def historic(id) -> str:
-    return render_template("historic.html", **controller.historic())
+def historic(id: str = controller.id) -> str:
+    return render_template("historic.html", **controller.historic(id))
 
 
 @app.route("/alarms", methods=["GET", "POST"])
-def alarms_() -> str:
-    return render_template("alarms.html", **controller.alarms())
-
-
 @app.route("/alarms/<string:id>", methods=["GET", "POST"])
-def alarms(id) -> str:
-    return render_template("alarms.html", **controller.alarms())
+def alarms(id: str = controller.id) -> str:
+    return render_template("alarms.html", **controller.alarms(id))
 
 
 @app.route("/event", methods=['POST'])
@@ -81,4 +69,5 @@ def realtimestate():
 
 @app.template_filter()
 def timestamp2date(value, format="%d/%m/%y, %H:%M:%S"):
-    return datetime.fromtimestamp(value+60*60*2).strftime(format) # Convert to Helsinki timezone
+    # Convert to Helsinki timezone
+    return datetime.fromtimestamp(value+60*60*2).strftime(format)
