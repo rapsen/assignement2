@@ -29,12 +29,8 @@ def handle_logging(client, userdata, level, buf):
 
 class Controller():
     def __init__(self) -> None:
-        if len(model.robots):
-            self.id = model.robots[0]
-        else:
-            self.id = None
-            log.warning("No robots in database")
-        self.robot = model.getRobots()
+        self.id = model.robots[0]
+        self.__robot = model.getRobots()
 
     def on_message(self, data: dict) -> None:
         event = model.on_message(data)
