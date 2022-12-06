@@ -7,7 +7,7 @@ mqtt.init_app(app)
 socket.init_app(app)
 
 mqtt.subscribe(MQTT_TOPIC)
-log.info(f"MQTT Suscribed to {MQTT_TOPIC} from {BROKER_HOSTNAME}:{BROKER_PORT}")
+log.info(f"MQTT Suscribed to {MQTT_TOPIC}")
 
 if __name__ == "__main__":
 
