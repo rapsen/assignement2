@@ -21,23 +21,18 @@ class Model():
         self.states = database.SELECT_DISTINCT_STATE()
 
     def getRobots(self) -> list[Robot]:
-        return database.SELECT_ALL_ROBOT()
+        return database.SELECT_ALL_ROBOTS()
 
     def addEvent(self, event: Event):
         print("New event in db: ", event)
         database.ADD_EVENT(event)
-
-    def last_event(self, id: str) -> Event:
-        a = database.getLastEventByRobot(id).__dict__
-        print(a)
-        return a
 
     def on_message(self, data: dict) -> Event:
         event = Event(data)
         database.ADD_EVENT(event)
 
         if event.deviceId in self.robots:
-            robot = Robot(data)
+            robot = event.robot()
             # if robot.state == event.state:
             #     robot.trigger = int(event.time - robot.time)
             database.UPDATE_ROBOT(robot)
@@ -49,12 +44,13 @@ class Model():
             robot = Robot(data)
             database.ADD_ROBOT(robot)
 
+        print(event)
         # self.monitor(event)
         return event
+    
 
     def monitor(event: Event):
         robot = database.SELECT_ROBOT(event.deviceId)
-        robot
 
     def update(self, data: dict):
         # Update database
