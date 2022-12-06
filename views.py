@@ -1,5 +1,4 @@
 from flask import Flask, render_template
-import paho.mqtt.publish as publish
 from datetime import datetime
 
 from config import *
@@ -7,8 +6,6 @@ from controller import controller
 
 # Create the flask application instance
 app = Flask(__name__)
-
-app.config.update(CONFIG)
 
 
 @app.route("/")

@@ -8,7 +8,7 @@ from config import *
 from model import model, iso2epoch, epoch2iso
 from database import database
 
-# Create the socket
+# Create the socket IO connection
 socket = SocketIO()
 # Create the mqtt client
 mqtt = Mqtt()
@@ -64,8 +64,10 @@ class Controller():
         if request.method == "POST":
             self.id, start, end = form.values()
 
-        d, mtbf = model.getRobEffBetTime(self.id, iso2epoch(start), iso2epoch(end))
+        d, mtbf = model.getRobEffBetTime(
+            self.id, iso2epoch(start), iso2epoch(end))
         return {"percentage": dumps(d), "mtbf": mtbf, "start": start, "end": end}
+
 
 # Create istance of the controllers
 controller = Controller()

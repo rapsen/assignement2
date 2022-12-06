@@ -1,5 +1,5 @@
 from sqlite3 import connect, Error
-from datetime import datetime, timedelta
+from datetime import datetime
 from time import mktime
 
 from config import *
@@ -14,6 +14,7 @@ def dict_factory(cursor, row):
 
 class Robot:
     """ Class to handle robots """
+
     def __init__(self, data: dict):
         self.deviceId = data['deviceId']
         self.state = data['state']
@@ -32,6 +33,7 @@ class Robot:
 
 class Event(Robot):
     """" Class to handle events """
+
     def __init__(self, data: dict):
         super().__init__(data)
         self.SN = int(data['SN'])

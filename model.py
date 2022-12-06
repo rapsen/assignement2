@@ -1,5 +1,5 @@
 from sqlite3 import connect
-from datetime import datetime, timedelta
+from datetime import datetime
 from time import mktime
 
 from config import *
@@ -47,7 +47,6 @@ class Model():
         print(event)
         # self.monitor(event)
         return event
-    
 
     def monitor(event: Event):
         robot = database.SELECT_ROBOT(event.deviceId)
