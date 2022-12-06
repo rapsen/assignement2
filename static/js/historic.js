@@ -19,9 +19,3 @@ function drawChart() {
     chart.draw(data, {height: 400});
 
 }
-
-
-function change() {
-    document.getElementById("id").value = document.getElementById("select").value
-    console.log(document.getElementById("id").value)
-}
