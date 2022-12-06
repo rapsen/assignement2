@@ -1,4 +1,3 @@
-from datetime import datetime, timedelta
 from json import loads, dumps
 
 from flask import request
@@ -6,7 +5,7 @@ from flask_mqtt import MQTT_LOG_ERR, Mqtt
 from flask_socketio import SocketIO
 
 from config import *
-from model import model, iso2timestamp
+from model import model, iso2epoch, epoch2iso
 from database import database
 
 # Create the socket
@@ -58,20 +57,19 @@ class Controller():
         return {"id": self.id, "robots": model.robots} | self.efficiency(request.form)
 
     def alarms(self, id=None) -> dict:
-        alarms = {}
+        alarms = {"start": epoch2iso(), "end": epoch2iso()}
         if request.method == "POST":
             alarms = model.getAlarms(**request.form)
-        return {"id": self.id, "robots": model.robots, "states": ALARM_STATES, "alarms": alarms}
+        return {"id": self.id, "robots": model.robots, "states": ALARM_STATES} | alarms
 
     def efficiency(self, form: dict) -> dict:
         d, mtbf = [], "No data"
-        start, end = [datetime.now().strftime("%Y-%m-%dT%H:%M")]*2
+        start, end = [epoch2iso()]*2
         if request.method == "POST":
             self.id, start, end = form.values()
 
-        d, mtbf = model.getRobEffBetTime(self.id, iso2timestamp(start), iso2timestamp(end))
+        d, mtbf = model.getRobEffBetTime(self.id, iso2epoch(start), iso2epoch(end))
         return {"percentage": dumps(d), "mtbf": mtbf, "start": start, "end": end}
-
 
 # Create istance of the controllers
 controller = Controller()

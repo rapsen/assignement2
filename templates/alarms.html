@@ -1,81 +1,77 @@
 <!DOCTYPE html>
-<html>
-
-<head>
-    <link rel="shortcut icon" href="static/icons/favicon.ico">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.js"></script>
-    <script src="https://cdn.anychart.com/releases/v8/js/anychart-core.min.js"></script>
-    <script src="https://cdn.anychart.com/releases/v8/js/anychart-pie.min.js"></script>
-
-    <link rel="stylesheet" href="/static/css/stylesheet.css">
-
-    <title>Alarms</title>
-</head>
-
-<body>
-    <div class="header"></div>
-    <div class="topnav">
-        <a href="/dashboard">Dashboard</a>
-        <a href="/historic">Historic</a>
-        <a href="/alarms">Alarms</a>
-    </div>
-    <div class="row">
-        <div class="card">
-            <h1>Alarms
-                <select class="select" id="select" onChange="ask(this)">
-                    {% for r in robots %}
-                    <option value={{r}}>{{r}}</option>
-                    {% endfor %}
-                </select>
-            </h1>
-            <form method="post">
-                <input type="text" name="deviceId" id="id" value={{id}} hidden>
-
-                <label for="start">FROM</label>
-                <input type="datetime-local" class="datetime" name="start" id="start" required>
-
-                <label for="end">UNTIL</label>
-                <input type="datetime-local" class="datetime" name="end" id="end" required>
-
-                <label for="end">FOR</label>
-                <select class="select" id="state" name="state">
-                    {% for s in states %}
-                    <option value="{{s}}">{{s}}</option>
-                    {% endfor %}
-                </select>
-
-                <input type="submit" class="select" value="Search Data"/>
-            </form>
+<html lang="en">
+    <head>
+        <link rel="shortcut icon" href="/static/icons/favicon.ico"/>
+        <link rel="stylesheet" href="/static/css/stylesheet.css"/>
+        <title>Alarms</title>
+    </head>
+    <body>
+        <div class="header"></div>
+        <div class="topnav">
+            <a href="/dashboard/{{ id }}">Dashboard</a>
+            <a href="/historic/{{ id }}">Historic</a>
+            <a href="/alarms/{{ id }}">Alarms</a>
         </div>
-        {% if alarms %}
-        <div class="card">
-            <h2>Total: {{ alarms | length }} alarms during this interval of time</div>
-            <table>
-                <thead>
-                    <tr>
-                        <th>State</th>
-                        <th>Start</th>
-                        <th>End</th>
-                        <th>Duration</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for a in alarms %}
-                    <tr>
-                        <td>{{ a.state }}</td>
-                        <td>{{ a.start }}</td>
-                        <td>{{ a.end }}</td>
-                        <td>{{ a.delta }}</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+        <div class="row">
+            <div class="card">
+                <h1>
+                    Alarms
+                    <select class="select" id="select" onChange="location = this.value">
+                        {% for r in robots %}
+                            <option value="/alarms/{{ r }}" {% if r == id %}selected{% endif %}>
+                                {{ r }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                    <data id="id" value={{ id }}></data>
+                </h1>
+                <form method="post">
+                    <input type="text" name="deviceId" id="id" value={{ id }} hidden/>
+                    <label for="start">FROM</label>
+                    <input type="datetime-local" class="datetime" name="start" id="start" value={{ start }} required/>
+                    <label for="end">UNTIL</label>
+                    <input type="datetime-local" class="datetime" name="end" id="end" value={{ end }} required/>
+                    <label for="end">FOR</label>
+                    <select class="select" id="state" name="state">
+                        {% for s in states %}
+                            <option value="{{ s }}">
+                                {{ s }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                    <input type="submit" class="select" value="Search Data" />
+                </form>
+            </div>
+            {% if alarms %}
+                <div class="card">
+                    <h2>
+                        Total: {{ alarms | length }} alarms during this interval of time
+                    </h2>
+                    </div>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>State</th>
+                                <th>Start</th>
+                                <th>End</th>
+                                <th>Duration</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for a in alarms %}
+                                <tr>
+                                    <td>{{ a.state }}</td>
+                                    <td>{{ a.start }}</td>
+                                    <td>{{ a.end }}</td>
+                                    <td>{{ a.delta }}</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% endif %}
         </div>
-        {% endif %}
-    </div>
-
     </div>
     <script src="/static/js/alarms.js"></script>
 </body>
-
 </html>

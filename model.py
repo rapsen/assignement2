@@ -59,7 +59,7 @@ class Model():
     def update(self, data: dict):
         # Update database
         # We store date as timestamp
-        data['time'] = iso2timestamp(data['time'])
+        data['time'] = iso2epoch(data['time'])
         print(data)
         self.addEvent(Event(dict(data)))
 
@@ -68,7 +68,7 @@ class Model():
         return data
 
     def getRobEffBetTime(self, deviceId: str, start: int, end: int):
-        """ This function calculates KPIs and Mean Time -> returns dict"""        
+        """ This function calculates KPIs and Mean Time -> returns dict"""
         list = database.getRobEventBetweenTime(deviceId, start, end)
         stateDict = {}
         efficiency = {}
@@ -142,9 +142,8 @@ class Model():
         return EventsInAlarm
 
     def getAlarms(self, deviceId: str, start: str, end: str, state: str, trigger: int = 200) -> list[Alarm]:
-        start, end = iso2timestamp(start), iso2timestamp(end)
-
-        events = database.SELECT_ALL_EVENT_BY_ROBOT_BETWEEN(deviceId, start, end)
+        s, e = iso2epoch(start), iso2epoch(end)
+        events = database.SELECT_ALL_EVENT_BY_ROBOT_BETWEEN(deviceId, s, e)
         alarms = []
 
         if events:
@@ -161,13 +160,19 @@ class Model():
                     if alarm is not None:
                         alarms.append(alarm)
                         alarm = None
-        return alarms
+        return {"alarms": alarms, "start": start, "end": end}
 
 
-def iso2timestamp(time: str) -> int:
+def iso2epoch(time: str) -> int:
+    """ Return the give datetime as an ISO 8601 string """
     if len(time) < 26:
         time = time + ":00.0"  # Add padings for the seconds
     return int(mktime(datetime.strptime(time[0:26], "%Y-%m-%dT%H:%M:%S.%f").timetuple()))
+
+
+def epoch2iso(time: int = None) -> str:
+    """ Return the given timestamp as a stringdatetime ISO 8651 formatted for the HTML datetime tags """
+    return datetime.now(time).strftime("%Y-%m-%dT%H:%M")
 
 
 # Create instance of the model
