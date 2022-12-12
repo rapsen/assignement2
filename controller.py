@@ -11,7 +11,7 @@ from database import database
 # Create the socket IO connection
 socket = SocketIO()
 # Create the mqtt client
-mqtt = Mqtt()
+mqtt = Mqtt(connect_async=True)
 
 
 @mqtt.on_message()
