@@ -1,7 +1,8 @@
 from json import loads, dumps
+from time import sleep
 
 from flask import request
-from flask_mqtt import MQTT_LOG_ERR, Mqtt
+from flask_mqtt import MQTT_LOG_ERR, MQTT_ERR_SUCCESS, Mqtt
 from flask_socketio import SocketIO
 
 from config import *
@@ -11,7 +12,7 @@ from database import database
 # Create the socket IO connection
 socket = SocketIO()
 # Create the mqtt client
-mqtt = Mqtt(connect_async=True)
+mqtt = Mqtt()
 
 
 @mqtt.on_message()
@@ -25,6 +26,13 @@ def handle_mqtt_message(client, userdata, message):
 def handle_logging(client, userdata, level, buf):
     if level == MQTT_LOG_ERR:
         log.error(f"MQTT Error: {buf}")
+        
+        
+def subscribe():
+    while mqtt.subscribe(MQTT_TOPIC)[0] != MQTT_ERR_SUCCESS:
+        log.critical(f"MQTT could not suscribe to {MQTT_TOPIC}")
+        sleep(5)
+    log.info(f"MQTT Suscribed to {MQTT_TOPIC}")
 
 
 class Controller():

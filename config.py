@@ -28,8 +28,8 @@ EVENT = "Event"
 ROBOT = "Robot"
 ALARM_TRIGGERS = 'Alarms'
 TAB = {
-    EVENT: ("deviceId", "state", "SN", "time"),
-    ROBOT: ("deviceId", "state", "time", "trigger"),
+    EVENT: ("deviceId", "state", "sequenceNumber", "time"),
+    ROBOT: ("deviceId", "state", "time"),
 }
 
 # Possible States

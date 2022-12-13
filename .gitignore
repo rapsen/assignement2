@@ -1,6 +1,9 @@
 # VS code configuration folder .vscode
 .vscode
 
+# Database
+.db
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
