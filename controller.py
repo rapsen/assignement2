@@ -34,9 +34,7 @@ mqtt = __Mqtt()
 @mqtt.on_message()
 def handle_mqtt_message(client, userdata, message):
     data = loads(message.payload.decode())
-    data['SN'] = data.pop("sequenceNumber")  # Change key for sequnceNumber
     controller.on_message(data)
-
 
 @mqtt.on_log()
 def handle_logging(client, userdata, level, buf):

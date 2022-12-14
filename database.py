@@ -36,7 +36,7 @@ class Event(Robot):
 
     def __init__(self, data: dict):
         super().__init__(data)
-        self.SN = int(data['SN'])
+        self.sequenceNumber = int(data['sequenceNumber'])
 
     def robot(self) -> Robot:
         """ Return an Robot instance with event parameter """
@@ -91,30 +91,18 @@ class Database():
             update += f"{k}='{v}', " if type(v) is str else f"{k}={v}, "
 
         self.execute(f"UPDATE {table} SET {update[:-2]} WHERE {c}", True)
-
-    def SELECT_ALL_EVENT_BY_STATE(self, state: str) -> list[Event]:
-        return [Event(d) for d in self.__SELECT(EVENT, condition=f"state == '{state}'")]
-
-    def SELECT_ALL_EVENT_BY_ROBOT(self, deviceId: str) -> list[Event]:
-        return [Event(d) for d in self.__SELECT(EVENT, condition=f"deviceId == '{deviceId}'")]
-
-    def SELECT_ALL_EVENT_BY_ROBOT_BETWEEN(self, deviceId: str, start: int, end: int, ) -> list[Event]:
+        
+    def SELECT_BETWEEN(self, deviceId: str, start: int, end: int, ) -> list[Event]:
         return [Event(d) for d in self.__SELECT(EVENT, condition=f"deviceID=='{deviceId}' AND time BETWEEN {start} AND {end}")]
 
     def SELECT_DISTINCT_STATE(self) -> list:
         return [d["state"] for d in self.__SELECT(EVENT, element="DISTINCT state")]
 
-    def getLastStateByRobot(self, deviceId: str):
-        return self.__SELECT(EVENT, element="deviceId, state, time", condition=f"deviceId = '{deviceId}' ORDER BY time DESC;")
-
     def ADD_EVENT(self, event: Event):
-        return self.__INSERT(EVENT, (event.deviceId, event.state, event.SN, event.time))
+        return self.__INSERT(EVENT, (event.deviceId, event.state, event.sequenceNumber, event.time))
 
-    def getRobEventBetweenTime(self, deviceId: str, start: int, end: int):
+    def SELECT_EVENT_BETWEEN(self, deviceId: str, start: int, end: int):
         return self.__SELECT(EVENT, element="deviceId, state, time", condition=f"deviceId = '{deviceId}' and time between '{start}' and '{end}' ORDER BY time ASC;")
-
-    def getStateById(self, deviceId: str, state: str) -> list:
-        return self.__SELECT(EVENT, element=f"id,time", condition=f"deviceId='{deviceId}' AND state='{state}'")
 
     def SELECT_ALL_ROBOTS(self) -> list[Robot]:
         return [Robot(d) for d in self.__SELECT(ROBOT)]
@@ -132,35 +120,3 @@ class Database():
 
 # Create instance of the database
 database = Database()
-
-
-def test():
-    """ Test database operation """
-
-    db = Database()
-
-    r = {'deviceId': 'rob2', 'state': 'READY-PROCESSING-EXECUTING',
-         'time': int(datetime.now().timestamp())}
-
-    e = Event({'id': 4190, 'deviceId': 'rob2', 'state': 'READY-PROCESSING-EXECUTING',
-               'SN': 17730, 'time': int(datetime.now().timestamp())})
-
-    print("#####################  ROBOT  #########################")
-    total_robot = db.SELECT_ALL_ROBOTS()
-    print(total_robot)
-    print(f"Total Robot: {len(total_robot)}")
-    for robot in total_robot:
-        print(f"    {db.SELECT_ROBOT(robot.deviceId)}")
-
-    print("#####################  EVENT  #########################")
-    print("     Robot:")
-    for robot in total_robot:
-        print(
-            f"        {robot.deviceId}: {len(db.SELECT_ALL_EVENT_BY_ROBOT(robot.deviceId))}")
-
-    start, end = 1669476872, 1669477333
-    print(f"     Between {datetime.fromtimestamp(start)} and {datetime.fromtimestamp(end)}: {len(db.SELECT_ALL_EVENT_BETWEEN(1669476872, 1669477333))}")
-
-
-if __name__ == "__main__":
-    test()

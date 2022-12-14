@@ -48,9 +48,6 @@ class Model():
         # self.monitor(event)
         return event
 
-    def monitor(event: Event):
-        robot = database.SELECT_ROBOT(event.deviceId)
-
     def update(self, data: dict):
         # Update database
         # We store date as timestamp
@@ -58,13 +55,9 @@ class Model():
         print(data)
         self.addEvent(Event(dict(data)))
 
-    def getlaststate(self, deviceId: str):
-        data = database.getLastStateByRobot(deviceId)[0]
-        return data
-
     def getRobEffBetTime(self, deviceId: str, start: int, end: int):
         """ This function calculates KPIs and Mean Time -> returns dict"""
-        list = database.getRobEventBetweenTime(deviceId, start, end)
+        list = database.SELECT_EVENT_BETWEEN(deviceId, start, end)
         stateDict = {}
         efficiency = {}
         up_time = 0
@@ -114,31 +107,9 @@ class Model():
         # print("States:", efficiency)
         return efficiency, int(mean_time)
 
-    def getAlarmForState(self, deviceId: str, timeAlarm: int, state: str):
-        events = database.SELECT_ALL_EVENT_BY_ROBOT(deviceId)
-        EventsInAlarm = []
-
-        for events_by_state in database.getStateById(deviceId, state):
-            for i in range(0, len(events) - 1):
-
-                if (events[i].id == events_by_state['id']):
-
-                    # print("time state start ",robot[i-1].time," ",robot[i].time)
-                    timesStartState = int(events[i - 1].time)
-
-                    timeEndState = int(events[i + 1].time)
-                    # print("time state end   ",robot[i+1].time," ",robot[i].time)
-                    timeEvent = timeEndState - timesStartState
-                    if (timeEvent > timeAlarm):
-                        EventsInAlarm.append(events[i])
-                        print(
-                            f"/!\ Warning:in event {events[i].id} device {deviceId} is {timeEvent} seconds in {state} state")
-
-        return EventsInAlarm
-
     def getAlarms(self, deviceId: str, start: str, end: str, state: str, trigger: int = 200) -> list[Alarm]:
         s, e = iso2epoch(start), iso2epoch(end)
-        events = database.SELECT_ALL_EVENT_BY_ROBOT_BETWEEN(deviceId, s, e)
+        events = database.SELECT_BETWEEN(deviceId, s, e)
         alarms = []
 
         if events:
