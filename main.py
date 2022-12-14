@@ -10,7 +10,7 @@ mqtt.init_app(app)
 socket.init_app(app)
 
 # Start the susbscription monitoring thread
-mqtt.thread.start()
+mqtt.subscriber.start()
 
 if __name__ == "__main__":
     socket.run(app, debug=True)

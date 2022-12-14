@@ -14,17 +14,14 @@ class __Mqtt(Mqtt):
     """ Just adding thread reconection to the original Mqtt client"""
     def __init__(self, app: Flask = None, connect_async: bool = False, mqtt_logging: bool = False) -> None:
         super().__init__(app, connect_async, mqtt_logging)
-        self.thread = Thread(target=self.loop_forever)  
-        self.connected = False  
+        self.subscriber = Thread(target=self.subscription)  
 
-    def loop_forever(self):
+    def subscription(self):
         log.info(f"Suscription Thread started")
         while True:
-            if self.connected is False:
+            if MQTT_TOPIC not in list(mqtt.topics):
                 mqtt.subscribe(MQTT_TOPIC)
                 log.info(f"MQTT Suscribed to {MQTT_TOPIC}")
-                self.connected = True
-                
             # Wait 1 minute
             sleep(60)
                 
@@ -48,8 +45,8 @@ def handle_logging(client, userdata, level, buf):
         
 @mqtt.on_disconnect()
 def handle_disconnect():
+    log.info(f"MQTT Disconnected")
     mqtt.connected = False
-        
 
 class Controller():
     def __init__(self) -> None:
