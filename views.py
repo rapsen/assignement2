@@ -27,24 +27,6 @@ def alarms(id: str = controller.id) -> str:
     return render_template("alarms.html", **controller.alarms(id))
 
 
-# """ Backend for Web UI"""
-#
-# @app.route("/api/historic/")
-# def historicdata():
-#     # data = {"deviceId": "rob1", "state": "READY", "time": 1669476872}
-#     inputdata = m.getRobEffBetTime("rob1", 1669476872, 1669812579)
-#     data = json.dumps(inputdata)
-#     return data
-#
-#
-# @app.route("/api/realstate/")
-# def realtimestate():
-#     # data = {"deviceId": "rob1", "state": "READY", "time": 1669476872}
-#     inputdata = m.getlaststate("rob2")
-#     data = json.dumps(inputdata)
-#     return data
-
-
 @app.template_filter()
 def timestamp2date(value, format="%d/%m/%y, %H:%M:%S"):
     # Convert to Helsinki timezone

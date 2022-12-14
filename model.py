@@ -33,13 +33,8 @@ class Model():
 
         if event.deviceId in self.robots:
             robot = event.robot()
-            # if robot.state == event.state:
-            #     robot.trigger = int(event.time - robot.time)
             database.UPDATE_ROBOT(robot)
 
-            # if robot.trigger > ALARM_TRIGGERS[robot.state]:
-            #     alarm = Alarm()
-            #     database
         else:
             robot = Robot(data)
             database.ADD_ROBOT(robot)
