@@ -1,7 +1,8 @@
 from json import loads, dumps
 from time import sleep
+from threading import Thread
 
-from flask import request
+from flask import request, Flask
 from flask_mqtt import MQTT_LOG_ERR, MQTT_ERR_SUCCESS, Mqtt
 from flask_socketio import SocketIO
 
@@ -9,10 +10,28 @@ from config import *
 from model import model, iso2epoch, epoch2iso
 from database import database
 
+class __Mqtt(Mqtt):
+    """ Just adding thread reconection to the original Mqtt client"""
+    def __init__(self, app: Flask = None, connect_async: bool = False, mqtt_logging: bool = False) -> None:
+        super().__init__(app, connect_async, mqtt_logging)
+        self.thread = Thread(target=self.loop_forever)  
+        self.connected = False  
+
+    def loop_forever(self):
+        log.info(f"Suscription Thread started")
+        while True:
+            if self.connected is False:
+                mqtt.subscribe(MQTT_TOPIC)
+                log.info(f"MQTT Suscribed to {MQTT_TOPIC}")
+                self.connected = True
+                
+            # Wait 1 minute
+            sleep(60)
+                
 # Create the socket IO connection
 socket = SocketIO()
-# Create the mqtt client
-mqtt = Mqtt()
+# Create the mqtt client with thread
+mqtt = __Mqtt()
 
 
 @mqtt.on_message()
@@ -27,13 +46,10 @@ def handle_logging(client, userdata, level, buf):
     if level == MQTT_LOG_ERR:
         log.error(f"MQTT Error: {buf}")
         
+@mqtt.on_disconnect()
+def handle_disconnect():
+    mqtt.connected = False
         
-def subscribe():
-    while mqtt.subscribe(MQTT_TOPIC)[0] != MQTT_ERR_SUCCESS:
-        log.critical(f"MQTT could not suscribe to {MQTT_TOPIC}")
-        sleep(5)
-    log.info(f"MQTT Suscribed to {MQTT_TOPIC}")
-
 
 class Controller():
     def __init__(self) -> None:
